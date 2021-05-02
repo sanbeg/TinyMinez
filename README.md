@@ -1,0 +1,2 @@
+# TinyMinez
+ MineSweeper-ish game
