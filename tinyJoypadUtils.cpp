@@ -72,7 +72,7 @@ void Sound( const uint8_t freq, const uint8_t dur )
 
 /*-------------------------------------------------------*/
 // This code will init the display for row <y> (only on Tiny85)
-inline void TinyFlip_PrepareDisplayRow( uint8_t y )
+void TinyFlip_PrepareDisplayRow( uint8_t y )
 {
 #if defined(__AVR_ATtiny85__)
     // initialize image transfer to segment 'y'
@@ -93,7 +93,7 @@ inline void TinyFlip_PrepareDisplayRow( uint8_t y )
 
 /*-------------------------------------------------------*/
 // This code will finish a row (only on Tiny85)
-inline void TinyFlip_FinishDisplayRow()
+void TinyFlip_FinishDisplayRow()
 {
 #if defined(__AVR_ATtiny85__)
   // this line appears to be optional, as it was never called during the intro screen...

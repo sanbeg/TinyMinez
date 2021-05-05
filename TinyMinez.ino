@@ -40,9 +40,10 @@ uint8_t level[GAME_ROWS * GAME_COLS];
 
 enum
 {
-  EMPTY =  0x00,
-  BOMB  =  0x01,
-  HIDDEN = 0x80,
+  empty =  0x00,
+  bomb  =  0x01,
+  hidden = 0x40,
+  cursor = 0x80,
 };
 
 /*--------------------------------------------------------*/
@@ -75,10 +76,28 @@ void loop()
 {
   createLevel( level, GAME_COLS, GAME_ROWS, 10 );
   serialPrintLevel( level, GAME_COLS, GAME_ROWS );
-  
+
+  uint16_t seed;
+
   while ( 1 )
   {
     Tiny_Flip();
+    // increase random seed
+    seed++;
+    // button pressed?
+    if ( isFirePressed() )
+    {
+      randomSeed( seed );
+      uint8_t x = random( GAME_COLS );
+      uint8_t y = random( GAME_ROWS );
+      uncoverTile( x, y );
+      // wait unit the button is released
+      while( isFirePressed() );
+      Serial.print(F("x = ")); Serial.println( x );
+      Serial.print(F("y = ")); Serial.println( y );
+      Serial.print(F("seed = ")); Serial.println( seed );
+      serialPrintLevel( level, GAME_COLS, GAME_ROWS );
+    }
   }
 }
 
@@ -91,49 +110,37 @@ void Tiny_Flip()
   {
     TinyFlip_PrepareDisplayRow( y );
 
-  #if !defined(__AVR_ATtiny85__)
-    // allocate a buffer in RAM
-    uint8_t *buffer = display.getBuffer() + y * 128;
-  #endif
+    // allocate a buffer in RAM (if necessary)
+    TinyFlip_PrepareBuffer( y );
     
     // the first 96 columns are used to display the dungeon
     for ( uint8_t x = 0; x < 96; x++ )
     {
-      uint8_t pixels = x;
-    #ifdef _SHOW_GRID_OVERLAY
-      if ( ( x & 0x01 ) && ( y < 7 ) ) { pixels |= 0x80; }
-      //if ( ( x & 0x07 ) == 0x07 ) { pixels |= 0x55; }
-    #endif      
-    #if defined(__AVR_ATtiny85__)
-      SSD1306.ssd1306_send_byte( pixels );
-    #else
-      // output to buffer of Adafruit_SSD1306 library
-      *buffer++ = pixels;
-    #endif
+      uint8_t spriteColumn = x & 0x07;
+      uint8_t *cell = &level[( x >> 3 ) + y * GAME_COLS];
+
+      uint8_t pixels = getSpriteData( *cell, spriteColumn );
+
+      TinyFlip_SendPixels( pixels );
     } // for x
 
     // display the dashboard here
     for ( uint8_t x = 0; x < 32; x++)
     {
       uint8_t pixels = x;
-      #if defined(__AVR_ATtiny85__)
-        SSD1306.ssd1306_send_byte( pixels );
-      #else
-        *buffer++ = pixels;
-      #endif
+      TinyFlip_SendPixels( pixels );
       statusPaneOffset++;
     }
     
     TinyFlip_FinishDisplayRow();
   } // for y
 
-  // no more flashing
-  //dungeon->displayXorEffect = 0;
+  // display the whole screen at once
+  TinyFlip_DisplayBuffer;
 
 #if !defined(__AVR_ATtiny85__)
-
   #ifdef _ENABLE_SERIAL_SCREENSHOT_
-    if ( _SERIAL_SCREENSHOT_TRIGGER_CONDITION_)
+    if ( _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ )
     {
       // print a short header
       Serial.println(F("\r\nTinyDungeon screenshot"));
@@ -141,8 +148,6 @@ void Tiny_Flip()
       printScreenBufferToSerial( display.getBuffer(), 128, 8 );
     }
   #endif
-  // display the whole screen at once
-  display.display();
 #endif
 }
 
@@ -153,7 +158,7 @@ void createLevel( uint8_t *level, uint8_t cols, uint8_t rows, uint8_t mineCount 
   uint8_t pos;
 
   // clear the level
-  memset( level, EMPTY, cols * rows );
+  memset( level, empty, cols * rows );
 
   // now place the mines
   for ( int n = 0; n < mineCount; n++ )
@@ -164,10 +169,15 @@ void createLevel( uint8_t *level, uint8_t cols, uint8_t rows, uint8_t mineCount 
       // get random position
       pos = random( cols * rows );
 
-    } while ( level[pos] != EMPTY );
+    } while ( level[pos] != empty );
 
     // place the mine
-    level[pos] = BOMB;
+    level[pos] = bomb;
+  }
+
+  for ( uint8_t n = 0; n < cols * rows; n++ )
+  {
+    level[n] |= hidden;
   }
 }
 
@@ -175,9 +185,64 @@ void createLevel( uint8_t *level, uint8_t cols, uint8_t rows, uint8_t mineCount 
 // dump the level to the serial port
 void serialPrintLevel( uint8_t *level, uint8_t cols, uint8_t rows )
 {
-  for ( uint8_t y = 0; y < rows; y++ )
+#if !defined(__AVR_ATtiny85__)
+ for ( uint8_t y = 0; y < rows; y++ )
   {
     hexdumpResetPositionCount();
     hexdumpToSerial( level + y * cols, cols, false, true );
   }
+#endif
+}
+
+/*--------------------------------------------------------*/
+uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
+{
+  if ( cellValue & hidden )
+  {
+    // this cell is still covered
+    return( pgm_read_byte( tile8x8 + spriteColumn ) );
+  }
+  if ( cellValue == bomb )
+  {
+    // a bomb!
+    return( pgm_read_byte( bomb8x8 + spriteColumn ) );
+  }
+
+  // obviously empty ;)
+  return( pgm_read_byte( empty8x8 + spriteColumn ) );
+}
+
+/*--------------------------------------------------------*/
+bool uncoverTile( const int8_t x, const int8_t y )
+{
+  // is it a bomb?
+  if ( getCellValue( x, y ) == bomb )
+  {
+    // GAME OVER...
+    return( true );
+  }
+  else
+  {
+    // uncover surrounding area
+    level[x + y * GAME_COLS] &= ~hidden;
+    //uncoverArea( x, y );
+    // still in the game
+    return( false );
+  }
+}
+
+/*--------------------------------------------------------*/
+// Access function to handle border management
+uint8_t getCellValue( const int8_t x, const int8_t y )
+{
+  uint8_t cellValue = empty;
+
+  if (    ( x >= 0 ) && ( x < GAME_COLS )
+       && ( y >= 0 ) && ( y <= GAME_ROWS )
+     )
+  {
+    cellValue = level[x + y * GAME_COLS];
+  }
+
+  return( cellValue );
 }

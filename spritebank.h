@@ -12,14 +12,14 @@ const unsigned char digits[] PROGMEM = {
 };
 
 // 'bomb_8x8', 8x8px
-const unsigned char bomb[] PROGMEM = {
+const unsigned char bomb8x8[] PROGMEM = {
 	0xff, 0x8f, 0x07, 0x03, 0x05, 0x05, 0x8e, 0xff
 };
 // 'empty_8xx8', 8x8px
-const unsigned char empty[] PROGMEM = {
+const unsigned char empty8x8[] PROGMEM = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 };
 // 'tile_8x8', 8x8px
-const unsigned char tile[] PROGMEM = {
+const unsigned char tile8x8[] PROGMEM = {
   0xff, 0x80, 0x81, 0x80, 0x81, 0x80, 0x81, 0xaa
 };
