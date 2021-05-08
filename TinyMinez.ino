@@ -40,11 +40,19 @@ uint8_t level[GAME_ROWS * GAME_COLS];
 
 enum
 {
-  empty =  0x00,
-  bomb  =  0x01,
-  hidden = 0x40,
-  cursor = 0x80,
+  empty     = 0x00,
+  countMask = 0x0f,
+  bomb      = 0x10,
+  hidden    = 0x40,
+  cursor    = 0x80,
+  dataMask  = 0x7f,
+
+  keyDelay  = 133,
 };
+
+uint8_t cursorX = 0;
+uint8_t cursorY = 0;
+
 
 /*--------------------------------------------------------*/
 void setup()
@@ -79,24 +87,54 @@ void loop()
 
   uint16_t seed;
 
+  bool updateBoard = true;
+
   while ( 1 )
   {
-    Tiny_Flip();
     // increase random seed
     seed++;
-    // button pressed?
+    
+    // buttons pressed?
+    if ( isLeftPressed() && ( cursorX > 0 ) )
+    {
+      cursorX--;
+      updateBoard = true;
+    }
+    if ( isRightPressed() && ( cursorX < GAME_COLS - 1 ) )
+    {
+      cursorX++;
+      updateBoard = true;
+    }
+    if ( isUpPressed() && ( cursorY > 0 ) )
+    {
+      cursorY--;
+      updateBoard = true;
+    }
+    if ( isDownPressed() && ( cursorY < GAME_ROWS - 1 ) )
+    {
+      cursorY++;
+      updateBoard = true;
+    }
     if ( isFirePressed() )
     {
-      randomSeed( seed );
-      uint8_t x = random( GAME_COLS );
-      uint8_t y = random( GAME_ROWS );
-      uncoverTile( x, y );
+      uncoverCells( cursorX, cursorY );
       // wait unit the button is released
-      while( isFirePressed() );
-      Serial.print(F("x = ")); Serial.println( x );
-      Serial.print(F("y = ")); Serial.println( y );
-      Serial.print(F("seed = ")); Serial.println( seed );
-      serialPrintLevel( level, GAME_COLS, GAME_ROWS );
+      //while( isFirePressed() ) { seed++; }
+      // board requires drawing
+      updateBoard = true;
+    }
+
+    // only draw board if there are any changes (important for getting a good seed)
+    if ( updateBoard )
+    {
+      // set cursor to the new position
+      setCursorPosition( cursorX, cursorY );
+      // draw board
+      Tiny_Flip();
+      // no forced update required
+      updateBoard = false;
+      // wait a moment
+      _delay_ms( keyDelay );
     }
   }
 }
@@ -120,6 +158,8 @@ void Tiny_Flip()
       uint8_t *cell = &level[( x >> 3 ) + y * GAME_COLS];
 
       uint8_t pixels = getSpriteData( *cell, spriteColumn );
+      // invert the tile with the cursor above it
+      if ( *cell & 0x80 ) { pixels ^= 0xff; }
 
       TinyFlip_SendPixels( pixels );
     } // for x
@@ -175,6 +215,27 @@ void createLevel( uint8_t *level, uint8_t cols, uint8_t rows, uint8_t mineCount 
     level[pos] = bomb;
   }
 
+  // now count all bombs in the neightbourhood
+  for ( int8_t y = 0; y < GAME_ROWS; y++ )
+  {
+    for ( int8_t x = 0; x < GAME_COLS; x++ )
+    {
+      if ( getCellValue( x, y ) != bomb )
+      {
+        // count all bombs around x,y
+        uint8_t neighbours = countNeighbours( x, y );
+
+        // bombs found?
+        if ( neighbours > 0 )
+        {
+          // store the neighbour count in the lower 4 bits of the cell
+          level[x + y * GAME_COLS] |= neighbours;
+        }
+      }
+    } // for x
+  } // for y
+
+  // hide all cells
   for ( uint8_t n = 0; n < cols * rows; n++ )
   {
     level[n] |= hidden;
@@ -197,6 +258,9 @@ void serialPrintLevel( uint8_t *level, uint8_t cols, uint8_t rows )
 /*--------------------------------------------------------*/
 uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
 {
+  // remove cursor
+  cellValue &= dataMask;
+
   if ( cellValue & hidden )
   {
     // this cell is still covered
@@ -207,13 +271,19 @@ uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
     // a bomb!
     return( pgm_read_byte( bomb8x8 + spriteColumn ) );
   }
+  else if ( ( cellValue >=1 ) && ( cellValue <= 9 ) )
+  {
+    // draw according digit
+    return( pgm_read_byte( digits + cellValue * 8 + spriteColumn ) );
+  }
 
   // obviously empty ;)
   return( pgm_read_byte( empty8x8 + spriteColumn ) );
 }
 
 /*--------------------------------------------------------*/
-bool uncoverTile( const int8_t x, const int8_t y )
+// uncovers all tiles adjacent to x,y
+bool uncoverCells( const int8_t x, const int8_t y )
 {
   // is it a bomb?
   if ( getCellValue( x, y ) == bomb )
@@ -223,12 +293,56 @@ bool uncoverTile( const int8_t x, const int8_t y )
   }
   else
   {
-    // uncover surrounding area
+    // uncover this tile
     level[x + y * GAME_COLS] &= ~hidden;
+    // is this tile empty?
+    uint8_t value = level[x + y * GAME_COLS] & dataMask;
+    if ( value == empty )
+    {
+      // uncover surrounding area (if )
+      for ( int8_t offsetY = -1; offsetY <= 1; offsetY++ )
+      {
+        for ( int8_t offsetX = -1; offsetX <= 1; offsetX++ )
+        {
+          // let's have a look
+          value = getCellValue( x + offsetX, y + offsetY ) & dataMask;
+          // covered, but no bomb there?
+          if (    ( value & hidden )
+              && !( value & bomb )
+            )
+          {
+            // 
+            uncoverCells( x + offsetX, y + offsetY );
+          }
+        }
+      }
+    }
+
     //uncoverArea( x, y );
     // still in the game
     return( false );
   }
+}
+
+/*--------------------------------------------------------*/
+// We can safely count the 3x3 neighbourhood, because the center
+// position is not a bomb - otherwise we would already be dead ;)
+uint8_t countNeighbours( const int8_t x, const int8_t y )
+{
+  uint8_t neighbours = 0;
+
+  for ( int8_t offsetY = -1; offsetY <= 1; offsetY++ )
+  {
+    for ( int8_t offsetX = -1; offsetX <= 1; offsetX++ )
+    {
+      if ( getCellValue( x + offsetX, y + offsetY ) & bomb )
+      {
+        neighbours++;
+      }
+    }
+  }
+
+  return( neighbours );
 }
 
 /*--------------------------------------------------------*/
@@ -238,11 +352,24 @@ uint8_t getCellValue( const int8_t x, const int8_t y )
   uint8_t cellValue = empty;
 
   if (    ( x >= 0 ) && ( x < GAME_COLS )
-       && ( y >= 0 ) && ( y <= GAME_ROWS )
+       && ( y >= 0 ) && ( y < GAME_ROWS )
      )
   {
     cellValue = level[x + y * GAME_COLS];
   }
 
   return( cellValue );
+}
+
+/*--------------------------------------------------------*/
+void setCursorPosition( const uint8_t &x, const uint8_t &y )
+{
+  // remove old cursor (wherever it was)
+  for ( uint8_t n = 0; n < GAME_COLS * GAME_ROWS; n++ )
+  {
+    level[n] &= dataMask;
+  }
+
+  // set new cursor
+  level[x + y * GAME_COLS] |= cursor;
 }
