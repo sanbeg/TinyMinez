@@ -14,6 +14,27 @@
 #include <ssd1306xled.h>
 
 /*-------------------------------------------------------*/
+// function for initializing the TinyJoypad (ATtiny85) and other microcontrollers
+void InitTinyJoypad()
+{
+#if defined(__AVR_ATtiny85__)
+  // not using 'pinMode()' here saves ~100 bytes of flash!
+  // configure A0, A3 and D1 as input
+  DDRB &= ~( ( 1 << PB5) | ( 1 << PB3 ) | ( 1 << PB1 ) );
+  // configure A2 as output
+  DDRB |= ( 1 << PB4 );
+#else
+  // use 'pinMode()' for simplicity's sake... any other micro controller has enough flash :)
+  pinMode( LEFT_RIGHT_BUTTON, INPUT );
+  pinMode( UP_DOWN_BUTTON, INPUT );
+  pinMode( FIRE_BUTTON, INPUT );
+
+  // prepare serial port for debugging output
+  Serial.begin( 115200 );
+#endif
+}
+
+/*-------------------------------------------------------*/
 bool isLeftPressed()
 {
   uint16_t inputX = analogRead( LEFT_RIGHT_BUTTON );

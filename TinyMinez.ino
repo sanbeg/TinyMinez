@@ -57,26 +57,10 @@ uint8_t cursorY = 0;
 /*--------------------------------------------------------*/
 void setup()
 {
-#if defined(__AVR_ATtiny85__)
-  SSD1306.ssd1306_init();
-  // not using 'pinMode()' here saves ~100 bytes of flash!
-  // configure A0, A3 and D1 as input
-  DDRB &= ~( ( 1 << PB5) | ( 1 << PB3 ) | ( 1 << PB1 ) );
-  // configure A2 as output
-  DDRB |= ( 1 << PB4 );
-#else
-  // DEBUG version on controller with serial ports
-  Serial.begin( 115200 );
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
-  // use 'pinMode()' for simplicity's sake... any other micro controller has enough flash :)
-  pinMode( LEFT_RIGHT_BUTTON, INPUT );
-  pinMode( UP_DOWN_BUTTON, INPUT );
-  pinMode( FIRE_BUTTON, INPUT );
-#endif
+  // initialize the pins (and serial port if present)
+  InitTinyJoypad();
+
+  InitDisplay;
 }
 
 /*--------------------------------------------------------*/
