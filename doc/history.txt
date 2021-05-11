@@ -1,0 +1,6 @@
+This will become a MineSweeper hommage on TinyJoypad!
+
+Sketch uses 1664 bytes (20%) of program storage space. Maximum is 8192 bytes.
+Global variables use 102 bytes (19%) of dynamic memory, leaving 410 bytes for local variables. Maximum is 512 bytes.
+
+The game display logic already works
