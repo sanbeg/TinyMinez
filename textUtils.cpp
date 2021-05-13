@@ -48,6 +48,8 @@ uint8_t displayText( uint8_t x, uint8_t y )
     // get the column value
     return( pgm_read_byte( characterFont3x5 + ( ( value - '0' ) << 2 ) + ( x & 0x03) ) );
   }
+
+  return( 0x00 );
 }
 
 /*--------------------------------------------------------------*/
