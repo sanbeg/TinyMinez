@@ -56,7 +56,7 @@ void loop()
 
   bool updateBoard = true;
 
-  while ( 1 )
+  while ( !game.isWon() )
   {
     uint8_t cursorX = game.getCursorX();
     uint8_t cursorY = game.getCursorY();
@@ -87,9 +87,29 @@ void loop()
     }
     if ( isFirePressed() )
     {
-      game.uncoverCells( cursorX, cursorY );
+      uint8_t count = 0;
+      // let's check how long fire is pressed
+      do
+      {
+        // wait a moment
+        _delay_ms( keyDelay );
+        // count this!
+        if ( count < 255 )
+        {
+          count++;
+        }
       // wait unit the button is released
-      //while( isFirePressed() ) { seed++; }
+      } while ( isFirePressed() );
+
+      // was fire pressed longer than 400ms?
+      if ( count > 3 )
+      {
+        game.toggleFlag( cursorX, cursorY );
+      }
+      else
+      {
+        game.uncoverCells( cursorX, cursorY );
+      }
       // board requires drawing
       updateBoard = true;
     }
@@ -107,6 +127,8 @@ void loop()
       _delay_ms( keyDelay );
     }
   }
+
+  Serial.println( F("Hooray!") );
 }
 
 /*--------------------------------------------------------*/
@@ -167,6 +189,11 @@ uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
   // remove cursor
   cellValue &= dataMask;
 
+  if ( cellValue & flag )
+  {
+    // a flag was planted here!
+    return( pgm_read_byte( flag8x8 + spriteColumn ) );
+  }
   if ( cellValue & hidden )
   {
     // this cellValue is still covered
@@ -177,7 +204,7 @@ uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
     // a bomb!
     return( pgm_read_byte( bomb8x8 + spriteColumn ) );
   }
-  else if ( ( cellValue >=1 ) && ( cellValue <= 9 ) )
+  if ( ( cellValue >=1 ) && ( cellValue <= 9 ) )
   {
     // draw according digit
     return( pgm_read_byte( digits + cellValue * 8 + spriteColumn ) );

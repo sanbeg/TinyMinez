@@ -76,6 +76,8 @@ void Game::createLevel( uint8_t mineCount )
 }
 
 
+
+
 /*--------------------------------------------------------*/
 // uncovers all tiles adjacent to x,y
 bool Game::uncoverCells( const int8_t x, const int8_t y )
@@ -117,6 +119,37 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
     return( false );
   }
 }
+
+
+/*--------------------------------------------------------*/
+// The game is won, if all fields except the mines are uncovered
+bool Game::isWon()
+{
+  bool isWon = true;
+
+  // no sophisticated x/y adressing, just run over the whole array
+  for ( uint8_t n = 0; n < levelWidth * levelHeight; n++ )
+  {
+    uint8_t value = levelData[n];
+    if ( ( value & hidden ) && !( value & bomb ) )
+    {
+      // nope, this cell has to be uncovered!
+      isWon = false;
+    }
+  }
+
+  return( isWon );
+}
+
+
+/*--------------------------------------------------------*/
+void Game::toggleFlag( const int8_t x, const int8_t y )
+{
+  uint8_t *cell = levelData + x + y * levelWidth;
+  *cell = *cell ^ flag;
+
+}
+
 
 /*--------------------------------------------------------*/
 // We can safely count the 3x3 neighbourhood, because the center
@@ -189,5 +222,6 @@ void Game::serialPrintLevel()
     hexdumpResetPositionCount();
     hexdumpToSerial( levelData + y + levelWidth, levelWidth, false, true );
   }
+  Serial.println();
 #endif
 }

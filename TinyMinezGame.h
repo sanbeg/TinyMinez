@@ -25,6 +25,8 @@ public:
   
   void      createLevel( uint8_t mineCount );
   bool      uncoverCells( const int8_t x, const int8_t y );
+  bool      isWon();
+  void      toggleFlag( const int8_t x, const int8_t y );
   uint8_t   getCursorX() { return( cursorX ); }
   uint8_t   getCursorY() { return( cursorY ); }
   uint8_t   getLevelWidth() { return( levelWidth ); }
