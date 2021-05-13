@@ -23,8 +23,9 @@ public:
   Game();
   Game( uint8_t levelWidth, uint8_t levelHeight );
   
-  void      createLevel( uint8_t mineCount );
-  bool      uncoverCells( const int8_t x, const int8_t y );
+  void      createLevel( uint8_t numOfMines );
+  bool      uncoverCells( const int8_t x, const int8_t y, bool countClick = true );
+  void      updateStatistics();
   bool      isWon();
   void      toggleFlag( const int8_t x, const int8_t y );
   uint8_t   getCursorX() { return( cursorX ); }
@@ -42,9 +43,11 @@ private:
 // Attributes
 
   // number of bombs
-  uint8_t   mineCount;
+  uint8_t   minesCount;
+  // number of set flags
+  uint8_t   flagsCount;
   // number of clicks
-  uint16_t  clickCount;
+  uint16_t  clicksCount;
   // level size
   uint8_t   levelWidth;
   uint8_t   levelHeight;

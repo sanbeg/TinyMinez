@@ -34,7 +34,15 @@
 #include "soundFX.h"
 #include "TinyMinezGame.h"
 
+// the game object containing all logic and data
 Game game;
+
+// it's difficult to spot the cursor, so let it flash (frame time is ~50ms)
+const uint8_t cursorMaxFlashCount = 24;
+// flash if count is greater or equal the threshold
+const uint8_t cursorFlashThreshold = cursorMaxFlashCount / 2;
+// increase this counter on every display;
+uint8_t cursorFlashCount = 0;
 
 /*--------------------------------------------------------*/
 void setup()
@@ -54,10 +62,11 @@ void loop()
 
   uint16_t seed;
 
-  bool updateBoard = true;
+  bool playerAction = false;
 
   while ( !game.isWon() )
   {
+    // get current cursor position
     uint8_t cursorX = game.getCursorX();
     uint8_t cursorY = game.getCursorY();
     
@@ -68,22 +77,26 @@ void loop()
     if ( isLeftPressed() && ( cursorX > 0 ) )
     {
       cursorX--;
-      updateBoard = true;
+      // wait a moment
+      playerAction = true;
     }
     if ( isRightPressed() && ( cursorX < game.getLevelWidth() - 1 ) )
     {
       cursorX++;
-      updateBoard = true;
+      // wait a moment
+      playerAction = true;
     }
     if ( isUpPressed() && ( cursorY > 0 ) )
     {
       cursorY--;
-      updateBoard = true;
+      // wait a moment
+      playerAction = true;
     }
     if ( isDownPressed() && ( cursorY < game.getLevelHeight() - 1 ) )
     {
       cursorY++;
-      updateBoard = true;
+      // wait a moment
+      playerAction = true;
     }
     if ( isFirePressed() )
     {
@@ -110,19 +123,26 @@ void loop()
       {
         game.uncoverCells( cursorX, cursorY );
       }
-      // board requires drawing
-      updateBoard = true;
+      // wait a moment
+      playerAction = true;
     }
 
-    // only draw board if there are any changes (important for getting a good seed)
-    if ( updateBoard )
+    // update cursor flash count
+    cursorFlashCount++;
+    if ( cursorFlashCount >= cursorMaxFlashCount ) { cursorFlashCount = 0; }
+
+    // set cursor to the new position
+    game.setCursorPosition( cursorX, cursorY );
+    // draw board
+    Tiny_Flip();
+
+    // only delay if there were any changes (important for getting a good seed)
+    if ( playerAction )
     {
-      // set cursor to the new position
-      game.setCursorPosition( cursorX, cursorY );
-      // draw board
-      Tiny_Flip();
+      // reset cursor to visible
+      cursorFlashCount = 0;
       // no forced update required
-      updateBoard = false;
+      playerAction = false;
       // wait a moment
       _delay_ms( keyDelay );
     }
@@ -135,6 +155,9 @@ void loop()
 void Tiny_Flip()
 {
   uint8_t statusPaneOffset = 0; 
+
+  // only draw cursor if flash count is less than threshold
+  uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
 
   for ( uint8_t y = 0; y < 8; y++)
   {
@@ -151,7 +174,7 @@ void Tiny_Flip()
 
       uint8_t pixels = getSpriteData( cellValue, spriteColumn );
       // invert the tile with the cursor above it
-      if ( cellValue & 0x80 ) { pixels ^= 0xff; }
+      if ( cellValue & 0x80 ) { pixels ^= cursor; }
 
       TinyFlip_SendPixels( pixels );
     } // for x

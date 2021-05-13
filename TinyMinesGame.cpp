@@ -11,7 +11,7 @@ Game::Game() : Game( MAX_GAME_COLS, MAX_GAME_ROWS )
 }
 
 /*--------------------------------------------------------*/
-Game::Game( uint8_t levelWidth, uint8_t levelHeight ) : mineCount( 0 ),  clickCount( 0 ),
+Game::Game( uint8_t levelWidth, uint8_t levelHeight ) : minesCount( 0 ), flagsCount( 0 ), clicksCount( 0 ),
                                                         levelWidth( levelWidth ), levelHeight( levelHeight ),
                                                         cursorX( levelWidth / 2 ), cursorY( levelHeight / 2 )
 {
@@ -21,14 +21,21 @@ Game::Game( uint8_t levelWidth, uint8_t levelHeight ) : mineCount( 0 ),  clickCo
 
 
 /*--------------------------------------------------------*/
-// Creates a level with 'mineCount' randomly placed mines.
-void Game::createLevel( uint8_t mineCount )
+// Creates a level with 'numOfMines' randomly placed mines.
+void Game::createLevel( uint8_t numOfMines )
 {
   // clear the level
   clearLevel();
 
+  // store number of mines
+  minesCount = numOfMines;
+  // no flags
+  flagsCount = 0;
+  // no clicks
+  clicksCount = 0;
+
   // now place the mines
-  while ( mineCount-- )
+  while ( minesCount-- )
   {
     uint8_t pos;
 
@@ -80,8 +87,11 @@ void Game::createLevel( uint8_t mineCount )
 
 /*--------------------------------------------------------*/
 // uncovers all tiles adjacent to x,y
-bool Game::uncoverCells( const int8_t x, const int8_t y )
+bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= true*/ )
 {
+  // should this "click" be counted?
+  if ( countClick ) { clicksCount++; }
+
   // is it a bomb?
   if ( getCellValue( x, y ) == bomb )
   {
@@ -91,7 +101,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
   else
   {
     // uncover this tile
-    levelData[x + y * levelWidth] &= ~hidden;
+    levelData[x + y * levelWidth] &= ~( hidden | flag );
     // is this tile empty?
     uint8_t value = levelData[x + y * levelWidth] & dataMask;
     if ( value == empty )
@@ -109,7 +119,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
             )
           {
             // 
-            uncoverCells( x + offsetX, y + offsetY );
+            uncoverCells( x + offsetX, y + offsetY, false );
           }
         }
       }
@@ -209,6 +219,10 @@ void Game::setCursorPosition( const uint8_t x, const uint8_t y )
   // clear level - just in case
 void Game::clearLevel()
 {
+  minesCount = 0;
+  flagsCount = 0;
+  clicksCount = 0;
+  // nothing is to be found here
   memset( levelData, empty, MAX_GAME_COLS * MAX_GAME_ROWS );
 }
 
