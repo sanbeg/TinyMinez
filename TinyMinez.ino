@@ -154,8 +154,6 @@ void loop()
 /*--------------------------------------------------------*/
 void Tiny_Flip()
 {
-  uint8_t statusPaneOffset = 0; 
-
   // only draw cursor if flash count is less than threshold
   uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
 
@@ -182,9 +180,8 @@ void Tiny_Flip()
     // display the dashboard here
     for ( uint8_t x = 0; x < 32; x++)
     {
-      uint8_t pixels = x;
+      uint8_t pixels = pgm_read_byte( dashBoard + x + y * 32 );
       TinyFlip_SendPixels( pixels );
-      statusPaneOffset++;
     }
     
     TinyFlip_FinishDisplayRow();
