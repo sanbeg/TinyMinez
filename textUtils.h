@@ -5,9 +5,9 @@
 // Video text memory:
 // - one line (of 32 characters) in standard mode,
 // - four lines (of 16 characters) in zoomed mode
-static uint8_t textBuffer[64];
+static uint8_t textBuffer[32];
 
-void __attribute__ ((noinline)) convertValueToDigits( uint16_t value, uint8_t *digits );
+void __attribute__ ((noinline)) convertValueToDigits( uint8_t value, uint8_t *digits );
 
 // display functions (and helpers)
 uint8_t displayText( uint8_t x,uint8_t y );

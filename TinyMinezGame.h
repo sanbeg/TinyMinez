@@ -17,6 +17,14 @@ enum
   dataMask  = 0x7f,
 };
 
+enum class Status
+{
+  intro,
+  game,
+  boom,
+  highscore,
+};
+
 class Game
 {
 public:
@@ -25,8 +33,8 @@ public:
   
   void      createLevel( uint8_t numOfMines );
   bool      uncoverCells( const int8_t x, const int8_t y, bool countClick = true );
-  void      updateStatistics();
   bool      isWon();
+  Status    getStatus() { return( status ); }
   void      toggleFlag( const int8_t x, const int8_t y );
   uint8_t   getCursorX() { return( cursorX ); }
   uint8_t   getCursorY() { return( cursorY ); }
@@ -36,11 +44,21 @@ public:
   uint8_t   getCellValue( const int8_t x, const int8_t y );
   void      serialPrintLevel();
 
+  uint8_t   getClicksCount() { return( clicksCount ); }
+  uint8_t   getFlaggedTilesCount() { return( countCellsWithAttribute( flag ) ); }
+  uint8_t   getHiddenTilesCount() { return( countCellsWithAttribute( hidden ) ); }
+
+
 private:
   uint8_t   countNeighbours( const int8_t x, const int8_t y );
   void      clearLevel();
+  uint8_t   countCellsWithAttribute( uint8_t mask );
 
+private:
 // Attributes
+
+  // game status (intro, game, boom)
+  Status    status;
 
   // number of bombs
   uint8_t   minesCount;

@@ -13,6 +13,13 @@
 // required for _delay_us()
 #include <ssd1306xled.h>
 
+// include Adafruit library and immediately create an object
+#if !defined(__AVR_ATtiny85__)
+  #include <Adafruit_SSD1306.h>
+  Adafruit_SSD1306 display( 128, 64, &Wire, -1 );
+#endif
+
+
 /*-------------------------------------------------------*/
 // function for initializing the TinyJoypad (ATtiny85) and other microcontrollers
 void InitTinyJoypad()

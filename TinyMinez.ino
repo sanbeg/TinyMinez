@@ -147,20 +147,56 @@ void loop()
       _delay_ms( keyDelay );
     }
   }
-
-  Serial.println( F("Hooray!") );
 }
 
 /*--------------------------------------------------------*/
 void Tiny_Flip()
 {
+  switch ( game.getStatus() )
+  {
+    case Status::intro:
+    {
+      for ( uint8_t y = 0; y < 8; y++)
+      {
+        // allocate a buffer in RAM (if necessary)
+        TinyFlip_PrepareBuffer( y );
+        TinyFlip_PrepareDisplayRow( y );        
+
+        // the first 96 columns are used to display the dungeon
+        for ( uint8_t x = 0; x < 128; x++ )
+        {
+          uint8_t pixels = pgm_read_byte( BOOM + x + y * 128 );
+          TinyFlip_SendPixels( pixels );
+        } // for x
+
+        TinyFlip_FinishDisplayRow();
+      } // for y
+      break;
+    }
+
+    case Status::game:
+    {
+      break;
+    }
+  }
+
+  // display the whole screen at once
+  TinyFlip_DisplayBuffer;
+
+  return;
+
+  // prepare text buffer for statistics
+  clearTextBuffer();
+  uint8_t *textBuffer = getTextBuffer();
+  convertValueToDigits( game.getFlaggedTilesCount(), textBuffer + 1 + 1 * 4 );
+  convertValueToDigits( game.getHiddenTilesCount(), textBuffer + 1 + 4 * 4 );
+  convertValueToDigits( game.getClicksCount(), textBuffer + 1 + 7 * 4 );
+
   // only draw cursor if flash count is less than threshold
   uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
 
   for ( uint8_t y = 0; y < 8; y++)
   {
-    TinyFlip_PrepareDisplayRow( y );
-
     // allocate a buffer in RAM (if necessary)
     TinyFlip_PrepareBuffer( y );
     
@@ -180,7 +216,8 @@ void Tiny_Flip()
     // display the dashboard here
     for ( uint8_t x = 0; x < 32; x++)
     {
-      uint8_t pixels = pgm_read_byte( dashBoard + x + y * 32 );
+      uint8_t pixels = pgm_read_byte( dashBoard + x + y * 32 )
+                     | displayText( x, y );
       TinyFlip_SendPixels( pixels );
     }
     

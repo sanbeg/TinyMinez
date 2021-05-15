@@ -8,6 +8,8 @@
 /*--------------------------------------------------------*/
 Game::Game() : Game( MAX_GAME_COLS, MAX_GAME_ROWS )
 {
+  // Intro screen
+  status = Status::intro;
 }
 
 /*--------------------------------------------------------*/
@@ -15,10 +17,11 @@ Game::Game( uint8_t levelWidth, uint8_t levelHeight ) : minesCount( 0 ), flagsCo
                                                         levelWidth( levelWidth ), levelHeight( levelHeight ),
                                                         cursorX( levelWidth / 2 ), cursorY( levelHeight / 2 )
 {
+  // Intro screen
+  status = Status::intro;
   // clear level - just in case
   clearLevel();
 }
-
 
 /*--------------------------------------------------------*/
 // Creates a level with 'numOfMines' randomly placed mines.
@@ -82,18 +85,24 @@ void Game::createLevel( uint8_t numOfMines )
   cursorY = levelHeight / 2;
 }
 
-
-
-
 /*--------------------------------------------------------*/
 // uncovers all tiles adjacent to x,y
 bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= true*/ )
 {
+  uint8_t value = getCellValue( x, y );
+
+  // any work to do?
+  if ( !( value & hidden ) )
+  {
+    // no work here...
+    return;
+  }
+
   // should this "click" be counted?
   if ( countClick ) { clicksCount++; }
 
   // is it a bomb?
-  if ( getCellValue( x, y ) == bomb )
+  if ( value == bomb )
   {
     // GAME OVER...
     return( true );
@@ -130,36 +139,20 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   }
 }
 
-
 /*--------------------------------------------------------*/
-// The game is won, if all fields except the mines are uncovered
+// The game is won, if all fields except the mines are uncovered,
+// thus the number of covered fields is equal to the number of mines.
 bool Game::isWon()
 {
-  bool isWon = true;
-
-  // no sophisticated x/y adressing, just run over the whole array
-  for ( uint8_t n = 0; n < levelWidth * levelHeight; n++ )
-  {
-    uint8_t value = levelData[n];
-    if ( ( value & hidden ) && !( value & bomb ) )
-    {
-      // nope, this cell has to be uncovered!
-      isWon = false;
-    }
-  }
-
-  return( isWon );
+  return( countCellsWithAttribute( hidden ) == minesCount );
 }
-
 
 /*--------------------------------------------------------*/
 void Game::toggleFlag( const int8_t x, const int8_t y )
 {
   uint8_t *cell = levelData + x + y * levelWidth;
   *cell = *cell ^ flag;
-
 }
-
 
 /*--------------------------------------------------------*/
 // We can safely count the 3x3 neighbourhood, because the center
@@ -238,4 +231,21 @@ void Game::serialPrintLevel()
   }
   Serial.println();
 #endif
+}
+
+/*--------------------------------------------------------*/
+uint8_t Game::countCellsWithAttribute( uint8_t mask )
+{
+  uint8_t count = 0;
+
+  for ( uint8_t n = 0; n < levelWidth * levelHeight; n++ )
+  {
+    // is this cell flagged?
+    if ( levelData[n] & mask )
+    {
+      count++;
+    }
+  }
+
+  return( count );
 }
