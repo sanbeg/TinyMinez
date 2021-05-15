@@ -10,13 +10,11 @@
 #include <Arduino.h>
 #include "tinyJoypadUtils.h"
 
-// required for _delay_us()
-#include <ssd1306xled.h>
-
 // include Adafruit library and immediately create an object
 #if !defined(__AVR_ATtiny85__)
   #include <Adafruit_SSD1306.h>
   Adafruit_SSD1306 display( 128, 64, &Wire, -1 );
+  uint8_t *adafruitBuffer;
 #endif
 
 
@@ -99,10 +97,25 @@ void Sound( const uint8_t freq, const uint8_t dur )
 }
 
 /*-------------------------------------------------------*/
-// This code will init the display for row <y> (only on Tiny85)
+void InitDisplay()
+{
+#if defined(__AVR_ATtiny85__) /* codepath for ATtiny85 */
+  SSD1306.ssd1306_init();
+#else
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  // Address 0x3D for 128x64
+  if( !display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) 
+  { 
+    Serial.println(F("SSD1306 allocation failed")); for(;;);
+  }
+#endif
+}
+
+/*-------------------------------------------------------*/
+// This code will init the display for row <y>
 void TinyFlip_PrepareDisplayRow( uint8_t y )
 {
-#if defined(__AVR_ATtiny85__)
+#if defined(__AVR_ATtiny85__)  /* codepath for ATtiny85 */
     // initialize image transfer to segment 'y'
     SSD1306.ssd1306_send_command(0xb0 + y);
   #ifdef _USE_SH1106_
@@ -116,6 +129,24 @@ void TinyFlip_PrepareDisplayRow( uint8_t y )
     SSD1306.ssd1306_send_command(0x10);  
   #endif    
     SSD1306.ssd1306_send_data_start();
+
+#else  /* codepath for any Adafruit_SSD1306 supported MCU */
+
+  // address the display buffer
+  adafruitBuffer = display.getBuffer() + ( y * 128 );
+#endif
+}
+
+/*-------------------------------------------------------*/
+void TinyFlip_SendPixels( uint8_t pixels )
+{
+#if defined(__AVR_ATtiny85__) /* codepath for ATtiny85 */
+  // send a byte directly to the SSD1306
+  SSD1306.ssd1306_send_byte( pixels );
+
+#else  /* codepath for any Adafruit_SSD1306 supported MCU */
+  // write pixels directly to the buffer
+  *adafruitBuffer++ = pixels;
 #endif
 }
 
@@ -127,5 +158,14 @@ void TinyFlip_FinishDisplayRow()
   // this line appears to be optional, as it was never called during the intro screen...
   // but hey, we still have some bytes left ;)
   SSD1306.ssd1306_send_data_stop();
+#endif
+}
+
+/*-------------------------------------------------------*/
+void TinyFlip_DisplayBuffer()
+{
+#if !defined(__AVR_ATtiny85__) /* codepath for any Adafruit_SSD1306 supported MCU */
+  // display buffer (not necessary)
+  display.display();
 #endif
 }

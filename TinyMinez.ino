@@ -20,12 +20,8 @@
 // perform a serial screenshot if this condition is true:
 //#define _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ ( isDownPressed() )
 
-#if defined(__AVR_ATtiny85__)
-  #include <ssd1306xled.h>
-#else
+#if !defined(__AVR_ATtiny85__)
   #include "SerialHexTools.h"
-  #include <Adafruit_SSD1306.h>
-  Adafruit_SSD1306 display( 128, 64, &Wire, -1 );
 #endif
 #include "spritebank.h"
 #include "smallFont.h"
@@ -50,7 +46,7 @@ void setup()
   // initialize the pins (and serial port if present)
   InitTinyJoypad();
 
-  InitDisplay;
+  InitDisplay();
 }
 
 /*--------------------------------------------------------*/
@@ -152,6 +148,7 @@ void loop()
 /*--------------------------------------------------------*/
 void Tiny_Flip()
 {
+  /*
   switch ( game.getStatus() )
   {
     case Status::intro:
@@ -159,7 +156,6 @@ void Tiny_Flip()
       for ( uint8_t y = 0; y < 8; y++)
       {
         // allocate a buffer in RAM (if necessary)
-        TinyFlip_PrepareBuffer( y );
         TinyFlip_PrepareDisplayRow( y );        
 
         // the first 96 columns are used to display the dungeon
@@ -181,9 +177,10 @@ void Tiny_Flip()
   }
 
   // display the whole screen at once
-  TinyFlip_DisplayBuffer;
+  TinyFlip_DisplayBuffer();
 
   return;
+  */
 
   // prepare text buffer for statistics
   clearTextBuffer();
@@ -197,8 +194,7 @@ void Tiny_Flip()
 
   for ( uint8_t y = 0; y < 8; y++)
   {
-    // allocate a buffer in RAM (if necessary)
-    TinyFlip_PrepareBuffer( y );
+    TinyFlip_PrepareDisplayRow( y );
     
     // the first 96 columns are used to display the dungeon
     for ( uint8_t x = 0; x < 96; x++ )
@@ -225,7 +221,7 @@ void Tiny_Flip()
   } // for y
 
   // display the whole screen at once
-  TinyFlip_DisplayBuffer;
+  TinyFlip_DisplayBuffer();
 
 #if !defined(__AVR_ATtiny85__)
   #ifdef _ENABLE_SERIAL_SCREENSHOT_
