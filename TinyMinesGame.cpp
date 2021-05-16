@@ -99,15 +99,16 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   if ( !( value & hidden ) )
   {
     // no work here...
-    return;
+    return( false );
   }
 
   // should this "click" be counted?
   if ( countClick ) { clicksCount++; }
 
   // is it a bomb?
-  if ( value == bomb )
+  if ( value & bomb )
   {
+    Serial.println( F("***BOOOOOM***"));
     // GAME OVER...
     return( true );
   }

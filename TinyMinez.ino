@@ -74,7 +74,7 @@ void loop()
         }
         
         // increment seed while waiting - this way we get a good enough random seed
-        while ( isFirePressed() ) {     game.incrementSeed(); }
+        while ( isFirePressed() ) { game.incrementSeed(); }
 
         break;
       }
@@ -155,7 +155,11 @@ void loop()
             else
             {
               // uncover this cell and all adjacent cells (if this cell is empty)
-              game.uncoverCells( cursorX, cursorY );
+              if ( game.uncoverCells( cursorX, cursorY ) )
+              {
+                // something bad did happen...
+                game.setStatus( Status::boom );
+              }
             }
             // wait a moment
             playerAction = true;
@@ -192,6 +196,17 @@ void loop()
       // show game over screen (aka BOOM screen)
       case Status::boom:
       {
+        // display intro screen
+        Tiny_Flip();
+
+        // check if button pressed
+        if ( isFirePressed() )
+        {
+          game.setStatus( Status::intro );
+          // increment seed while waiting - this way we get a good enough random seed
+          while ( isFirePressed() ) { game.incrementSeed(); }
+        }
+
         break;
       }
 

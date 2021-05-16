@@ -50,7 +50,6 @@ uint8_t displayText( uint8_t x, uint8_t y )
   // is it a valid character?
   if ( value != 0 )
   {
-    //Serial.print( F("x = ")); Serial.print( x );Serial.print( F(", y = ")); Serial.println( y );
     // get the column value
     return( pgm_read_byte( segementedDigits + ( value - '0' ) * 8 + ( x & 0x07 ) ) );
   }
@@ -62,14 +61,6 @@ uint8_t displayText( uint8_t x, uint8_t y )
 void clearTextBuffer()
 {
   memset( textBuffer, 0x00, sizeof( textBuffer ) );
-#if !defined(__AVR_ATtiny85__)
-  for ( auto n = 0; n < sizeof( textBuffer ); n++ )
-  {
-    auto value = textBuffer[n];
-    Serial.write( value == 0 ? '_' : value );
-  }
-  Serial.println();
-#endif
 }
 
 /*--------------------------------------------------------------*/
