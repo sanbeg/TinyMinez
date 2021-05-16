@@ -45,144 +45,165 @@ void setup()
 {
   // initialize the pins (and serial port if present)
   InitTinyJoypad();
-
+  // perform display initialization
   InitDisplay();
 }
 
 /*--------------------------------------------------------*/
 void loop()
 {
-  game.createLevel( 10 );
-
-  game.serialPrintLevel();
-
-  uint16_t seed;
-
-  bool playerAction = false;
-
-  while ( !game.isWon() )
+  // game main loop
+  while ( true )
   {
-    // get current cursor position
-    uint8_t cursorX = game.getCursorX();
-    uint8_t cursorY = game.getCursorY();
-    
-    // increase random seed
-    seed++;
-    
-    // buttons pressed?
-    if ( isLeftPressed() && ( cursorX > 0 ) )
+    // always incement seed
+    game.incrementSeed();
+
+    switch ( game.getStatus() )
     {
-      cursorX--;
-      // wait a moment
-      playerAction = true;
-    }
-    if ( isRightPressed() && ( cursorX < game.getLevelWidth() - 1 ) )
-    {
-      cursorX++;
-      // wait a moment
-      playerAction = true;
-    }
-    if ( isUpPressed() && ( cursorY > 0 ) )
-    {
-      cursorY--;
-      // wait a moment
-      playerAction = true;
-    }
-    if ( isDownPressed() && ( cursorY < game.getLevelHeight() - 1 ) )
-    {
-      cursorY++;
-      // wait a moment
-      playerAction = true;
-    }
-    if ( isFirePressed() )
-    {
-      uint8_t count = 0;
-      // let's check how long fire is pressed
-      do
+      /////////////////////////////
+      // intro screen
+      case Status::intro:
       {
-        // wait a moment
-        _delay_ms( keyDelay );
-        // count this!
-        if ( count < 255 )
+        // display intro screen
+        Tiny_Flip();
+
+        // check if button pressed
+        if ( isFirePressed() )
         {
-          count++;
+          game.setStatus( Status::prepareGame );
         }
-      // wait unit the button is released
-      } while ( isFirePressed() );
+        
+        // increment seed while waiting - this way we get a good enough random seed
+        while ( isFirePressed() ) {     game.incrementSeed(); }
 
-      // was fire pressed longer than 400ms?
-      if ( count > 3 )
-      {
-        game.toggleFlag( cursorX, cursorY );
+        break;
       }
-      else
+
+      /////////////////////////////
+      // prepare new game
+      case Status::prepareGame:
       {
-        game.uncoverCells( cursorX, cursorY );
+        // create a new level depending on the difficulty (TODO)
+        game.createLevel( 10 );
+        // dump the level to serial
+        game.serialPrintLevel();
+        // start the game
+        game.setStatus( Status::playGame );
+        break;
       }
-      // wait a moment
-      playerAction = true;
-    }
 
-    // update cursor flash count
-    cursorFlashCount++;
-    if ( cursorFlashCount >= cursorMaxFlashCount ) { cursorFlashCount = 0; }
+      /////////////////////////////
+      // play the game
+      case Status::playGame:
+      {
+        bool playerAction = false;
 
-    // set cursor to the new position
-    game.setCursorPosition( cursorX, cursorY );
-    // draw board
-    Tiny_Flip();
+        while ( !game.isWon() )
+        {
+          // increase random seed
+          game.incrementSeed();
 
-    // only delay if there were any changes (important for getting a good seed)
-    if ( playerAction )
-    {
-      // reset cursor to visible
-      cursorFlashCount = 0;
-      // no forced update required
-      playerAction = false;
-      // wait a moment
-      _delay_ms( keyDelay );
-    }
-  }
+          // get current cursor position
+          uint8_t cursorX = game.getCursorX();
+          uint8_t cursorY = game.getCursorY();
+          
+          // any buttons pressed?
+          if ( isLeftPressed() && ( cursorX > 0 ) )
+          {
+            cursorX--;
+            // wait a moment
+            playerAction = true;
+          }
+          if ( isRightPressed() && ( cursorX < game.getLevelWidth() - 1 ) )
+          {
+            cursorX++;
+            // wait a moment
+            playerAction = true;
+          }
+          if ( isUpPressed() && ( cursorY > 0 ) )
+          {
+            cursorY--;
+            // wait a moment
+            playerAction = true;
+          }
+          if ( isDownPressed() && ( cursorY < game.getLevelHeight() - 1 ) )
+          {
+            cursorY++;
+            // wait a moment
+            playerAction = true;
+          }
+          if ( isFirePressed() )
+          {
+            uint8_t count = 0;
+            // let's check how long fire is pressed
+            do
+            {
+              // wait a moment
+              _delay_ms( keyDelay );
+              // count this!
+              if ( count < 255 ) { count++; 
+              }
+            // wait unit the button is released
+            } while ( isFirePressed() );
+
+            // was fire pressed longer than 3 rounds(~400ms)?
+            if ( count > 3 )
+            {
+              // set or remove a flag symbol
+              game.toggleFlag( cursorX, cursorY );
+            }
+            else
+            {
+              // uncover this cell and all adjacent cells (if this cell is empty)
+              game.uncoverCells( cursorX, cursorY );
+            }
+            // wait a moment
+            playerAction = true;
+          }
+
+          // update cursor flash count
+          cursorFlashCount++;
+          if ( cursorFlashCount >= cursorMaxFlashCount ) { cursorFlashCount = 0; }
+
+          // set cursor to the new position
+          game.setCursorPosition( cursorX, cursorY );
+
+          // draw board
+          Tiny_Flip();
+
+          // only delay if there were any changes (important for getting a good seed)
+          if ( playerAction )
+          {
+            // reset cursor to visible
+            cursorFlashCount = 0;
+            // no forced update required
+            playerAction = false;
+            // wait a moment
+            _delay_ms( keyDelay );
+        
+            // dump the level to serial
+            game.serialPrintLevel();
+          }
+        }
+        break;
+      }
+
+      /////////////////////////////
+      // show game over screen (aka BOOM screen)
+      case Status::boom:
+      {
+        break;
+      }
+
+    } // switch
+
+  } // while ( true )
 }
 
 /*--------------------------------------------------------*/
 void Tiny_Flip()
 {
-  /*
-  switch ( game.getStatus() )
-  {
-    case Status::intro:
-    {
-      for ( uint8_t y = 0; y < 8; y++)
-      {
-        // allocate a buffer in RAM (if necessary)
-        TinyFlip_PrepareDisplayRow( y );        
-
-        // the first 96 columns are used to display the dungeon
-        for ( uint8_t x = 0; x < 128; x++ )
-        {
-          uint8_t pixels = pgm_read_byte( BOOM + x + y * 128 );
-          TinyFlip_SendPixels( pixels );
-        } // for x
-
-        TinyFlip_FinishDisplayRow();
-      } // for y
-      break;
-    }
-
-    case Status::game:
-    {
-      break;
-    }
-  }
-
-  // display the whole screen at once
-  TinyFlip_DisplayBuffer();
-
-  return;
-  */
-
-  // prepare text buffer for statistics
+  // prepare text buffer for statistics (only displayed during the game)
   clearTextBuffer();
   uint8_t *textBuffer = getTextBuffer();
   convertValueToDigits( game.getFlaggedTilesCount(), textBuffer + 1 + 1 * 4 );
@@ -195,27 +216,58 @@ void Tiny_Flip()
   for ( uint8_t y = 0; y < 8; y++)
   {
     TinyFlip_PrepareDisplayRow( y );
-    
-    // the first 96 columns are used to display the dungeon
-    for ( uint8_t x = 0; x < 96; x++ )
+
+    switch ( game.getStatus() )
     {
-      uint8_t spriteColumn = x & 0x07;
-      uint8_t cellValue = game.getCellValue( x >> 3, y );
+      case Status::intro:
+      case Status::prepareGame:
+      {
+        // display the full line
+        for ( uint8_t x = 0; x < 128; x++ )
+        {
+          uint8_t pixels = pgm_read_byte( TitleScreen + x + y * 128 );
+          TinyFlip_SendPixels( pixels );
+        } // for x
+        break;
+      }
 
-      uint8_t pixels = getSpriteData( cellValue, spriteColumn );
-      // invert the tile with the cursor above it
-      if ( cellValue & 0x80 ) { pixels ^= cursor; }
+      case Status::playGame:
+      {
+        // the first 96 columns are used to display the dungeon
+        for ( uint8_t x = 0; x < 96; x++ )
+        {
+          uint8_t spriteColumn = x & 0x07;
+          uint8_t cellValue = game.getCellValue( x >> 3, y );
 
-      TinyFlip_SendPixels( pixels );
-    } // for x
+          uint8_t pixels = getSpriteData( cellValue, spriteColumn );
+          // invert the tile with the cursor above it
+          if ( cellValue & 0x80 ) { pixels ^= cursor; }
 
-    // display the dashboard here
-    for ( uint8_t x = 0; x < 32; x++)
-    {
-      uint8_t pixels = pgm_read_byte( dashBoard + x + y * 32 )
-                     | displayText( x, y );
-      TinyFlip_SendPixels( pixels );
-    }
+          TinyFlip_SendPixels( pixels );
+        } // for x
+
+        // display the dashboard here
+        for ( uint8_t x = 0; x < 32; x++)
+        {
+          uint8_t pixels = pgm_read_byte( dashBoard + x + y * 32 )
+                        | displayText( x, y );
+          TinyFlip_SendPixels( pixels );
+        }
+        break;
+      }
+
+      case Status::boom:
+      {
+        // display the full line
+        for ( uint8_t x = 0; x < 128; x++ )
+        {
+          uint8_t pixels = pgm_read_byte( BOOM + x + y * 128 );
+          TinyFlip_SendPixels( pixels );
+        } // for x
+        break;
+      }
+
+    } // switch
     
     TinyFlip_FinishDisplayRow();
   } // for y

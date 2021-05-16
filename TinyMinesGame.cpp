@@ -15,7 +15,8 @@ Game::Game() : Game( MAX_GAME_COLS, MAX_GAME_ROWS )
 /*--------------------------------------------------------*/
 Game::Game( uint8_t levelWidth, uint8_t levelHeight ) : minesCount( 0 ), flagsCount( 0 ), clicksCount( 0 ),
                                                         levelWidth( levelWidth ), levelHeight( levelHeight ),
-                                                        cursorX( levelWidth / 2 ), cursorY( levelHeight / 2 )
+                                                        cursorX( levelWidth / 2 ), cursorY( levelHeight / 2 ),
+                                                        seed( 0 )
 {
   // Intro screen
   status = Status::intro;
@@ -36,6 +37,9 @@ void Game::createLevel( uint8_t numOfMines )
   flagsCount = 0;
   // no clicks
   clicksCount = 0;
+
+  // set random seed to the live value
+  randomSeed( seed );
 
   // now place the mines
   while ( minesCount-- )
@@ -224,7 +228,12 @@ void Game::clearLevel()
 void Game::serialPrintLevel()
 {
 #if !defined(__AVR_ATtiny85__)
- for ( uint8_t y = 0; y < levelHeight; y++ )
+  Serial.print( F("markedMines = ") ); Serial.print( getFlaggedTilesCount() );
+  Serial.print( F(", hiddenTiles = ") ); Serial.print( getHiddenTilesCount() );
+  Serial.print( F(", clicksCount = ") ); Serial.print( getClicksCount() );
+  Serial.print( F(", seed = ") ); Serial.println( getSeed() );
+  
+  for ( uint8_t y = 0; y < levelHeight; y++ )
   {
     hexdumpResetPositionCount();
     hexdumpToSerial( levelData + y + levelWidth, levelWidth, false, true );

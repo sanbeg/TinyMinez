@@ -20,7 +20,8 @@ enum
 enum class Status
 {
   intro,
-  game,
+  prepareGame,
+  playGame,
   boom,
   highscore,
 };
@@ -35,6 +36,7 @@ public:
   bool      uncoverCells( const int8_t x, const int8_t y, bool countClick = true );
   bool      isWon();
   Status    getStatus() { return( status ); }
+  void      setStatus( Status newStatus ) { status = newStatus; }
   void      toggleFlag( const int8_t x, const int8_t y );
   uint8_t   getCursorX() { return( cursorX ); }
   uint8_t   getCursorY() { return( cursorY ); }
@@ -42,6 +44,8 @@ public:
   uint8_t   getLevelHeight() { return( levelHeight ); }
   void      setCursorPosition( const uint8_t x, const uint8_t y );
   uint8_t   getCellValue( const int8_t x, const int8_t y );
+  void      incrementSeed() { seed++; }
+  long      getSeed() { return( seed ); }
   void      serialPrintLevel();
 
   uint8_t   getClicksCount() { return( clicksCount ); }
@@ -54,12 +58,10 @@ private:
   void      clearLevel();
   uint8_t   countCellsWithAttribute( uint8_t mask );
 
-private:
 // Attributes
-
+private:
   // game status (intro, game, boom)
   Status    status;
-
   // number of bombs
   uint8_t   minesCount;
   // number of set flags
@@ -72,6 +74,8 @@ private:
   // cursor position
   uint8_t   cursorX;
   uint8_t   cursorY;
+  // seed value
+  long      seed;
   // level data
   uint8_t   levelData[MAX_GAME_COLS * MAX_GAME_ROWS];
 };
