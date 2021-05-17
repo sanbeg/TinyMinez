@@ -98,7 +98,7 @@ void loop()
       {
         bool playerAction = false;
 
-        while ( !game.isWon() )
+        while ( !game.isWon()  && game.getStatus() != Status::boom )
         {
           // increase random seed
           game.incrementSeed();
