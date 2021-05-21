@@ -43,6 +43,7 @@ public:
   uint8_t   getLevelWidth() { return( levelWidth ); }
   uint8_t   getLevelHeight() { return( levelHeight ); }
   void      setCursorPosition( const uint8_t x, const uint8_t y );
+  void      setCellValue( const int8_t x, const int8_t y, const uint8_t value );
   uint8_t   getCellValue( const int8_t x, const int8_t y );
   void      incrementSeed() { seed++; }
   long      getSeed() { return( seed ); }

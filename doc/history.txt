@@ -5,10 +5,14 @@ Global variables use 102 bytes (19%) of dynamic memory, leaving 410 bytes for lo
 
 The game display logic already works :)
 
++ start screen (during which the random seed can be increased)
++ *BOOM* screen
++ flashing on *BOOM*
+
 To do:
 
-* start screen (during which the random seed can be increased)
-* *BOOM* screen
 * change numbers font to 6x8 (8x8 doesn't look good)? Or redo digits
 * increase board size to 14 * 8?
-* different difficulty levels (10,20,30 bombs?)
+* different difficulty levels (5, 10, 15, 20, 25 bombs?)
+* add scrolling for even larger fields
+* add sound effects (pitch depending of number of mines in the neighbourhood?)

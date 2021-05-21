@@ -108,16 +108,16 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   // is it a bomb?
   if ( value & bomb )
   {
-    Serial.println( F("***BOOOOOM***"));
+    Serial.println( F("***BOOOOOM***") );
     // GAME OVER...
     return( true );
   }
   else
   {
-    // uncover this tile
-    levelData[x + y * levelWidth] &= ~( hidden | flag );
+    // uncover this tile (and remove any flags positioned on this tile)
+    setCellValue( x, y, value & ~( hidden | flag ) );
     // is this tile empty?
-    uint8_t value = levelData[x + y * levelWidth] & dataMask;
+    uint8_t value = getCellValue( x, y ) & dataMask;
     if ( value == empty )
     {
       // uncover surrounding area (if )
@@ -128,11 +128,9 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
           // let's have a look
           value = getCellValue( x + offsetX, y + offsetY ) & dataMask;
           // covered, but no bomb there?
-          if (    ( value & hidden )
-              && !( value & bomb )
-            )
+          if ( ( value & hidden ) && !( value & bomb ) )
           {
-            // 
+            // play it again, Sam!
             uncoverCells( x + offsetX, y + offsetY, false );
           }
         }
@@ -179,6 +177,19 @@ uint8_t Game::countNeighbours( const int8_t x, const int8_t y )
 
   return( neighbours );
 }
+
+/*--------------------------------------------------------*/
+// Access function to handle border management
+void Game::setCellValue( const int8_t x, const int8_t y, const uint8_t value )
+{
+  if (    ( x >= 0 ) && ( x < levelWidth )
+       && ( y >= 0 ) && ( y < levelHeight )
+     )
+  {
+    levelData[x + y * levelWidth] = value;
+  }
+}
+
 
 /*--------------------------------------------------------*/
 // Access function to handle border management

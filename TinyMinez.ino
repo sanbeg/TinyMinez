@@ -65,7 +65,7 @@ void loop()
       case Status::intro:
       {
         // display intro screen
-        Tiny_Flip();
+        Tiny_Flip( false );
 
         // check if button pressed
         if ( isFirePressed() )
@@ -173,7 +173,7 @@ void loop()
           game.setCursorPosition( cursorX, cursorY );
 
           // draw board
-          Tiny_Flip();
+          Tiny_Flip( false );
 
           // only delay if there were any changes (important for getting a good seed)
           if ( playerAction )
@@ -196,16 +196,17 @@ void loop()
       // show game over screen (aka BOOM screen)
       case Status::boom:
       {
-        // display intro screen
-        Tiny_Flip();
+        // display ***BOOM*** screen and flash 3 times
+        for ( uint8_t flash = 0; flash < 7; flash++ ) { Tiny_Flip( flash & 0x01 ); _delay_ms( 50 ); }
 
-        // check if button pressed
-        if ( isFirePressed() )
-        {
-          game.setStatus( Status::intro );
-          // increment seed while waiting - this way we get a good enough random seed
-          while ( isFirePressed() ) { game.incrementSeed(); }
-        }
+        // wait until the fire button is pressed
+        while( !isFirePressed() );
+
+        // increment seed while waiting - this way we get a good enough random seed
+        while ( isFirePressed() ) { game.incrementSeed(); }
+
+        // return to the title screen
+        game.setStatus( Status::intro );
 
         break;
       }
@@ -216,7 +217,7 @@ void loop()
 }
 
 /*--------------------------------------------------------*/
-void Tiny_Flip()
+void Tiny_Flip( bool invert )
 {
   // prepare text buffer for statistics (only displayed during the game)
   clearTextBuffer();
@@ -228,6 +229,7 @@ void Tiny_Flip()
   // only draw cursor if flash count is less than threshold
   uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
 
+  // there are 8 rows of 8 pixels each
   for ( uint8_t y = 0; y < 8; y++)
   {
     TinyFlip_PrepareDisplayRow( y );
@@ -238,11 +240,14 @@ void Tiny_Flip()
       case Status::prepareGame:
       {
         // display the full line
-        for ( uint8_t x = 0; x < 128; x++ )
-        {
-          uint8_t pixels = pgm_read_byte( TitleScreen + x + y * 128 );
-          TinyFlip_SendPixels( pixels );
-        } // for x
+        displayBitmapRow( y, TitleScreen, invert );
+        break;
+      }
+
+      case Status::boom:
+      {
+        // display the full line
+        displayBitmapRow( y, BOOM, invert );
         break;
       }
 
@@ -265,20 +270,9 @@ void Tiny_Flip()
         for ( uint8_t x = 0; x < 32; x++)
         {
           uint8_t pixels = pgm_read_byte( dashBoard + x + y * 32 )
-                        | displayText( x, y );
+                         | displayText( x, y );
           TinyFlip_SendPixels( pixels );
         }
-        break;
-      }
-
-      case Status::boom:
-      {
-        // display the full line
-        for ( uint8_t x = 0; x < 128; x++ )
-        {
-          uint8_t pixels = pgm_read_byte( BOOM + x + y * 128 );
-          TinyFlip_SendPixels( pixels );
-        } // for x
         break;
       }
 
@@ -301,6 +295,20 @@ void Tiny_Flip()
     }
   #endif
 #endif
+}
+
+/*--------------------------------------------------------*/
+// Displays the row of the given bitmap and inverts it if required
+void displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool invert )
+{
+  uint8_t xorValue = ( invert ? 0xff : 0x00 );
+
+  // display the full line
+  for ( uint8_t x = 0; x < 128; x++ )
+  {
+    uint8_t pixels = pgm_read_byte( bitmap + x + y * 128 ) ^ xorValue;
+    TinyFlip_SendPixels( pixels );
+  } // for x
 }
 
 /*--------------------------------------------------------*/
