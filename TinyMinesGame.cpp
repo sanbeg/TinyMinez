@@ -143,6 +143,19 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
 }
 
 /*--------------------------------------------------------*/
+// uncover all tiles after ***BOOM***
+void Game::uncoverAllCells()
+{
+  for ( uint8_t y = 0; y < levelHeight; y++ )
+  {
+    for ( uint8_t x = 0; x < levelWidth; x++ )
+    {
+      setCellValue( x, y, getCellValue( x, y ) & ~hidden );
+    }
+  }
+
+}
+/*--------------------------------------------------------*/
 // The game is won, if all fields except the mines are uncovered,
 // thus the number of covered fields is equal to the number of mines.
 bool Game::isWon()

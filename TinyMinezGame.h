@@ -23,6 +23,7 @@ enum class Status
   prepareGame,
   playGame,
   boom,
+  gameOver,
   highscore,
 };
 
@@ -34,6 +35,7 @@ public:
   
   void      createLevel( uint8_t numOfMines );
   bool      uncoverCells( const int8_t x, const int8_t y, bool countClick = true );
+  void      uncoverAllCells();
   bool      isWon();
   Status    getStatus() { return( status ); }
   void      setStatus( Status newStatus ) { status = newStatus; }

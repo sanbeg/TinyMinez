@@ -71,10 +71,10 @@ void loop()
         if ( isFirePressed() )
         {
           game.setStatus( Status::prepareGame );
+
+          // increment seed while waiting - this way we get a good enough random seed
+          while ( isFirePressed() ) { game.incrementSeed(); }
         }
-        
-        // increment seed while waiting - this way we get a good enough random seed
-        while ( isFirePressed() ) { game.incrementSeed(); }
 
         break;
       }
@@ -196,14 +196,19 @@ void loop()
       // show game over screen (aka BOOM screen)
       case Status::boom:
       {
-        // display ***BOOM*** screen and flash 3 times
-        for ( uint8_t flash = 0; flash < 7; flash++ ) { Tiny_Flip( flash & 0x01 ); _delay_ms( 50 ); }
+        // display ***BOOM*** screen and flash 
+        for ( uint8_t flash = 0; flash < 3; flash++ ) { Tiny_Flip( flash & 0x01 ); /*_delay_ms( 50 );*/ }
 
         // wait until the fire button is pressed
-        while( !isFirePressed() );
+        waitForFireButtonPressedAndReleased();
+
+        // show the board with all tiles uncoverted
+        game.uncoverAllCells();
+        game.setStatus( Status::gameOver );
+        Tiny_Flip( false );
 
         // increment seed while waiting - this way we get a good enough random seed
-        while ( isFirePressed() ) { game.incrementSeed(); }
+        waitForFireButtonPressedAndReleased();
 
         // return to the title screen
         game.setStatus( Status::intro );
@@ -252,6 +257,7 @@ void Tiny_Flip( bool invert )
       }
 
       case Status::playGame:
+      case Status::gameOver:
       {
         // the first 96 columns are used to display the dungeon
         for ( uint8_t x = 0; x < 96; x++ )
@@ -340,4 +346,13 @@ uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
 
   // obviously empty ;)
   return( pgm_read_byte( empty8x8 + spriteColumn ) );
+}
+
+/*--------------------------------------------------------*/
+void waitForFireButtonPressedAndReleased()
+{
+  // wait until fire is pressed
+  while ( !isFirePressed() ) { game.incrementSeed(); }
+  // wait until fire is released
+  while ( isFirePressed() ) { game.incrementSeed(); }
 }

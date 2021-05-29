@@ -8,6 +8,7 @@ The game display logic already works :)
 + start screen (during which the random seed can be increased)
 + *BOOM* screen
 + flashing on *BOOM*
++ display uncovered level after explosion
 
 To do:
 
@@ -16,3 +17,6 @@ To do:
 * different difficulty levels (5, 10, 15, 20, 25 bombs?)
 * add scrolling for even larger fields
 * add sound effects (pitch depending of number of mines in the neighbourhood?)
+* try vertical shearing on explosion (like a rotation)
+* always save game state to EEPROM?
+* replay level function (store last seed on level start)
