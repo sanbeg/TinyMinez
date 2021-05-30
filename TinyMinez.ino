@@ -197,18 +197,23 @@ void loop()
       case Status::boom:
       {
         // display ***BOOM*** screen and flash 
-        for ( uint8_t flash = 0; flash < 3; flash++ ) { Tiny_Flip( flash & 0x01 ); /*_delay_ms( 50 );*/ }
+        for ( uint8_t flash = 0; flash < 10; flash++ ) { Tiny_Flip( flash == 0 ); _delay_ms( 100 ); }
 
-        // wait until the fire button is pressed
-        waitForFireButtonPressedAndReleased();
-
-        // show the board with all tiles uncoverted
-        game.uncoverAllCells();
+        // uncover all cells
+        //game.uncoverAllCells();
         game.setStatus( Status::gameOver );
-        Tiny_Flip( false );
 
-        // increment seed while waiting - this way we get a good enough random seed
-        waitForFireButtonPressedAndReleased();
+        while ( !isFirePressed() )
+        { 
+          // show the board with all tiles uncoverted
+          Tiny_Flip( true );
+          // update cursor flash count
+          cursorFlashCount++;
+          if ( cursorFlashCount >= cursorMaxFlashCount ) { cursorFlashCount = 0; }
+        }
+
+        // wait until fire is released
+        while ( isFirePressed() );
 
         // return to the title screen
         game.setStatus( Status::intro );
@@ -259,6 +264,9 @@ void Tiny_Flip( bool invert )
       case Status::playGame:
       case Status::gameOver:
       {
+        // invert image?
+        uint8_t invertValue = invert ? 0xff : 0x00;
+
         // the first 96 columns are used to display the dungeon
         for ( uint8_t x = 0; x < 96; x++ )
         {
@@ -268,6 +276,8 @@ void Tiny_Flip( bool invert )
           uint8_t pixels = getSpriteData( cellValue, spriteColumn );
           // invert the tile with the cursor above it
           if ( cellValue & 0x80 ) { pixels ^= cursor; }
+          // invert anyway?
+          pixels ^= invertValue;
 
           TinyFlip_SendPixels( pixels );
         } // for x

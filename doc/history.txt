@@ -20,3 +20,4 @@ To do:
 * try vertical shearing on explosion (like a rotation)
 * always save game state to EEPROM?
 * replay level function (store last seed on level start)
+* replay is optional (configuration value)

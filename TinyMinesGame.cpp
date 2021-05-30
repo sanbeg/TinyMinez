@@ -105,6 +105,9 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   // should this "click" be counted?
   if ( countClick ) { clicksCount++; }
 
+  // uncover this tile (and remove any flags positioned on this tile)
+  setCellValue( x, y, value & ~( hidden | flag ) );
+
   // is it a bomb?
   if ( value & bomb )
   {
@@ -114,8 +117,6 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   }
   else
   {
-    // uncover this tile (and remove any flags positioned on this tile)
-    setCellValue( x, y, value & ~( hidden | flag ) );
     // is this tile empty?
     uint8_t value = getCellValue( x, y ) & dataMask;
     if ( value == empty )
@@ -164,10 +165,14 @@ bool Game::isWon()
 }
 
 /*--------------------------------------------------------*/
+// toggle flag - but only on covered tiles
 void Game::toggleFlag( const int8_t x, const int8_t y )
 {
-  uint8_t *cell = levelData + x + y * levelWidth;
-  *cell = *cell ^ flag;
+  uint8_t cellValue = getCellValue( x, y );
+  if ( cellValue & hidden )
+  {
+    setCellValue( x, y, cellValue ^ flag );
+  }
 }
 
 /*--------------------------------------------------------*/
