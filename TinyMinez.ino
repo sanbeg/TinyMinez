@@ -62,6 +62,7 @@ void loop()
   {
     game.serialPrintGameStatus();
     _delay_ms( 250 );
+    _delay_ms( 250 );
 
     // always incement seed
     game.incrementSeed();
@@ -386,7 +387,7 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
   uint8_t *chunkBuffer = getTextBuffer();
 
   // uncompress chunk and save next address
-  uint8_t *render;// = pgm_RLEdecompress( render, chunkBuffer, 128 );
+  uint8_t *render = pgm_RLEdecompress( bitmap, chunkBuffer, 128 );
 
   // display the full line
   for ( uint8_t x = 0; x < 128; x++ )
