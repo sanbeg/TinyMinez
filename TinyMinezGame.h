@@ -24,6 +24,7 @@ enum class Status
   playGame,
   boom,
   gameOver,
+  gameWon,
   highscore,
 };
 
@@ -50,6 +51,7 @@ public:
   void      incrementSeed() { seed++; }
   long      getSeed() { return( seed ); }
   void      serialPrintLevel();
+  void      serialPrintGameStatus();
 
   uint8_t   getClicksCount() { return( clicksCount ); }
   uint8_t   getFlaggedTilesCount() { return( countCellsWithAttribute( flag ) ); }

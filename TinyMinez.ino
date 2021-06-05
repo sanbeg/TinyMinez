@@ -28,7 +28,10 @@
 #include "tinyJoypadUtils.h"
 #include "textUtils.h"
 #include "soundFX.h"
+#include "RLEdecompression.h"
 #include "TinyMinezGame.h"
+
+const unsigned char PROGMEM txtAllMinesFound[] = "CONGRATS\0\0ALL\0\0\0\0MINES\0\0FOUND!\0\0";
 
 // the game object containing all logic and data
 Game game;
@@ -52,9 +55,14 @@ void setup()
 /*--------------------------------------------------------*/
 void loop()
 {
+  game.setStatus( Status::intro );
+
   // game main loop
   while ( true )
   {
+    game.serialPrintGameStatus();
+    _delay_ms( 250 );
+
     // always incement seed
     game.incrementSeed();
 
@@ -189,6 +197,8 @@ void loop()
             game.serialPrintLevel();
           }
         }
+        // game won?
+        //if ( game.isWon() ) { game.setStatus( Status::gameWon ); }
         break;
       }
 
@@ -221,6 +231,21 @@ void loop()
         break;
       }
 
+      /////////////////////////////
+      // all mines found, congratulations!
+      case Status::gameWon:
+      {
+        // display game won screen
+        Tiny_Flip( false );
+        // play a tune
+        // ...
+        // wait for button
+        waitForFireButtonPressedAndReleased();
+
+        // switch to intro screen
+        game.setStatus( Status::intro );
+      }
+
     } // switch
 
   } // while ( true )
@@ -229,14 +254,30 @@ void loop()
 /*--------------------------------------------------------*/
 void Tiny_Flip( bool invert )
 {
+  Status gameStatus = game.getStatus();
+
   // prepare text buffer for statistics (only displayed during the game)
   clearTextBuffer();
   uint8_t *textBuffer = getTextBuffer();
-  convertValueToDigits( game.getFlaggedTilesCount(), textBuffer + 1 + 1 * 4 );
-  convertValueToDigits( game.getHiddenTilesCount(), textBuffer + 1 + 4 * 4 );
-  convertValueToDigits( game.getClicksCount(), textBuffer + 1 + 7 * 4 );
 
-  // only draw cursor if flash count is less than threshold
+  if ( gameStatus == Status::gameWon )
+  {
+    Serial.println( F("GameStatus = gameWon") );
+    // Congratulate player...
+    memcpy_P( textBuffer, txtAllMinesFound, 32 );
+  }
+  else
+  {
+    // prepare statistics when game is running
+    convertValueToDigits( game.getFlaggedTilesCount(), textBuffer + 1 + 1 * 4 );
+    convertValueToDigits( game.getHiddenTilesCount(), textBuffer + 1 + 4 * 4 );
+    convertValueToDigits( game.getClicksCount(), textBuffer + 1 + 7 * 4 );
+  }
+
+  // optional bitmap buffer pointer
+  uint8_t *compressedBitmap;
+
+  // only invert cursor if flash count is less than threshold
   uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
 
   // there are 8 rows of 8 pixels each
@@ -244,26 +285,29 @@ void Tiny_Flip( bool invert )
   {
     TinyFlip_PrepareDisplayRow( y );
 
-    switch ( game.getStatus() )
+    switch ( gameStatus )
     {
       case Status::intro:
       case Status::prepareGame:
-      {
-        // display the full line
-        displayBitmapRow( y, TitleScreen, invert );
-        break;
-      }
-
       case Status::boom:
       {
+        // select bitmap
+        if ( y == 0 )
+        {
+          compressedBitmap = TitleScreen;
+          if ( gameStatus == Status::boom ) { compressedBitmap = BOOM; }
+        }
+
         // display the full line
-        displayBitmapRow( y, BOOM, invert );
+        compressedBitmap = displayBitmapRow( y, compressedBitmap, invert );
         break;
       }
 
       case Status::playGame:
       case Status::gameOver:
       {
+Serial.println( F("*** playing ***"));
+
         // invert image?
         uint8_t invertValue = invert ? 0xff : 0x00;
 
@@ -292,6 +336,23 @@ void Tiny_Flip( bool invert )
         break;
       }
 
+      case Status::gameWon:
+      {
+        // display the zoomed text buffer
+        for ( uint8_t x = 0; x < 128; x++)
+        {
+          uint8_t pixels = displayZoomedText( x, y );
+          TinyFlip_SendPixels( pixels );
+        }
+        break;
+      }
+
+      default:
+      {
+        Serial.println( F("*** default ***") );
+        break;
+      }
+
     } // switch
     
     TinyFlip_FinishDisplayRow();
@@ -305,7 +366,7 @@ void Tiny_Flip( bool invert )
     if ( _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ )
     {
       // print a short header
-      Serial.println(F("\r\nTinyDungeon screenshot"));
+      Serial.println(F("\r\nTinyMinez screenshot"));
       // output the full buffer as a hexdump to the serial port
       printScreenBufferToSerial( display.getBuffer(), 128, 8 );
     }
@@ -315,16 +376,27 @@ void Tiny_Flip( bool invert )
 
 /*--------------------------------------------------------*/
 // Displays the row of the given bitmap and inverts it if required
-void displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool invert )
+// The bitmap is expected to be RLE encoded. The function returns
+// the pointer of the next compressed chunk of image data.
+uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool invert )
 {
   uint8_t xorValue = ( invert ? 0xff : 0x00 );
+
+  // we will repurpose the text buffer to save valuable RAM
+  uint8_t *chunkBuffer = getTextBuffer();
+
+  // uncompress chunk and save next address
+  uint8_t *render;// = pgm_RLEdecompress( render, chunkBuffer, 128 );
 
   // display the full line
   for ( uint8_t x = 0; x < 128; x++ )
   {
-    uint8_t pixels = pgm_read_byte( bitmap + x + y * 128 ) ^ xorValue;
+    uint8_t pixels = ( *chunkBuffer++ ) ^ xorValue;
     TinyFlip_SendPixels( pixels );
   } // for x
+
+  // return the current decompression pointer
+  return( render );
 }
 
 /*--------------------------------------------------------*/

@@ -158,10 +158,11 @@ void Game::uncoverAllCells()
 }
 /*--------------------------------------------------------*/
 // The game is won, if all fields except the mines are uncovered,
-// thus the number of covered fields is equal to the number of mines.
+// thus the number of covered fields is less or equal to the number of mines.
+// (Less, because there might be a "continue" play mode)
 bool Game::isWon()
 {
-  return( countCellsWithAttribute( hidden ) == minesCount );
+  return( countCellsWithAttribute( hidden ) <= minesCount );
 }
 
 /*--------------------------------------------------------*/
@@ -270,6 +271,39 @@ void Game::serialPrintLevel()
   }
   Serial.println();
 #endif
+}
+
+/*--------------------------------------------------------*/
+// prints the current game status to serial output
+void Game::serialPrintGameStatus()
+{
+  switch( status )
+  {
+    case Status::intro:
+      Serial.println( F("Status: intro") );
+      break;
+    case Status::prepareGame:
+      Serial.println( F("Status: prepareGame") );
+      break;
+    case Status::playGame:
+      Serial.println( F("Status: playGame") );
+      break;
+    case Status::boom:
+      Serial.println( F("Status: boom") );
+      break;
+    case Status::gameOver:
+      Serial.println( F("Status: gameOver") );
+      break;
+    case Status::gameWon:
+      Serial.println( F("Status: gameWon") );
+      break;
+    case Status::highscore:
+      Serial.println( F("Status: highscore") );
+      break;
+    default:
+      Serial.println( F("Statis: <unknown status>") );
+      break;
+  }
 }
 
 /*--------------------------------------------------------*/

@@ -21,3 +21,5 @@ To do:
 * always save game state to EEPROM?
 * replay level function (store last seed on level start)
 * replay is optional (configuration value)
+* detect that the player won the game
+* out of memory?
