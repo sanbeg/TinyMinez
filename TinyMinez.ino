@@ -60,10 +60,6 @@ void loop()
   // game main loop
   while ( true )
   {
-    game.serialPrintGameStatus();
-    _delay_ms( 250 );
-    _delay_ms( 250 );
-
     // always incement seed
     game.incrementSeed();
 
@@ -107,7 +103,7 @@ void loop()
       {
         bool playerAction = false;
 
-        while ( !game.isWon()  && game.getStatus() != Status::boom )
+        while ( ( game.getStatus() != Status::gameWon ) && ( game.getStatus() != Status::boom ) )
         {
           // increase random seed
           game.incrementSeed();
@@ -115,7 +111,7 @@ void loop()
           // get current cursor position
           uint8_t cursorX = game.getCursorX();
           uint8_t cursorY = game.getCursorY();
-          
+
           // any buttons pressed?
           if ( isLeftPressed() && ( cursorX > 0 ) )
           {
@@ -169,6 +165,15 @@ void loop()
                 // something bad did happen...
                 game.setStatus( Status::boom );
               }
+              else
+              {
+                // are all non mine fields uncovered?
+                if ( game.isWon() ) 
+                { 
+                  // game won!
+                  game.setStatus( Status::gameWon );
+                }
+              }
             }
             // wait a moment
             playerAction = true;
@@ -198,8 +203,6 @@ void loop()
             game.serialPrintLevel();
           }
         }
-        // game won?
-        //if ( game.isWon() ) { game.setStatus( Status::gameWon ); }
         break;
       }
 
@@ -307,8 +310,6 @@ void Tiny_Flip( bool invert )
       case Status::playGame:
       case Status::gameOver:
       {
-Serial.println( F("*** playing ***"));
-
         // invert image?
         uint8_t invertValue = invert ? 0xff : 0x00;
 

@@ -42,7 +42,7 @@ void Game::createLevel( uint8_t numOfMines )
   randomSeed( seed );
 
   // now place the mines
-  while ( minesCount-- )
+  while ( numOfMines-- )
   {
     uint8_t pos;
 
@@ -313,8 +313,8 @@ uint8_t Game::countCellsWithAttribute( uint8_t mask )
 
   for ( uint8_t n = 0; n < levelWidth * levelHeight; n++ )
   {
-    // is this cell flagged?
-    if ( levelData[n] & mask )
+    // does this cell meet the condition?
+    if ( ( levelData[n] & mask ) != 0 )
     {
       count++;
     }
