@@ -37,7 +37,7 @@ const unsigned char PROGMEM txtAllMinesFound[] = "CONGRATS\0\0ALL\0\0\0\0MINES\0
 Game game;
 
 // the difficulty selection
-//SelectionOverlay selectionOverlay( checked, unchecked, 16, 6, 0x01 );
+SelectionOverlay selectionOverlay( checked, unchecked, 16, 6, 0x01 );
 
 // it's difficult to spot the cursor, so let it flash (frame time is ~50ms)
 const uint8_t cursorMaxFlashCount = 24;
@@ -424,6 +424,15 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
 {
   uint8_t xorValue = ( invert ? 0xff : 0x00 );
 
+  // overlay is only required during difficulty selection;
+  SelectionOverlay *overlay = nullptr;
+  uint8_t *selectionBitmap;
+  if ( game.getStatus() == Status::difficultySelection )
+  {
+    overlay = &selectionOverlay;
+    selectionBitmap = ( ( y >> 1 ) + 1 == overlay->_selectionMask ) ? overlay->_bitmapSelected : overlay->_bitmapUnselected;
+  }
+
   // we will repurpose the text buffer to save valuable RAM
   uint8_t *chunkBuffer = getTextBuffer();
 
@@ -434,6 +443,22 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
   for ( uint8_t x = 0; x < 128; x++ )
   {
     uint8_t pixels = ( *chunkBuffer++ ) ^ xorValue;
+
+    if ( overlay != nullptr )
+    {
+      if ( ( x >= overlay->_bitmapOffsetX ) && ( x < overlay->_bitmapOffsetX + overlay->_bitmapWidth ) )
+      {
+        if ( ( y & 0x01 ) == 0x00 )
+        {
+          pixels |= pgm_read_byte( selectionBitmap + x - overlay->_bitmapOffsetX );
+        }
+        else
+        {
+          pixels |= pgm_read_byte( selectionBitmap + x - overlay->_bitmapOffsetX + overlay->_bitmapWidth );
+        }
+      }
+    }
+    
     TinyFlip_SendPixels( pixels );
   } // for x
 
