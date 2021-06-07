@@ -36,6 +36,9 @@ const unsigned char PROGMEM txtAllMinesFound[] = "CONGRATS\0\0ALL\0\0\0\0MINES\0
 // the game object containing all logic and data
 Game game;
 
+// the difficulty selection
+//SelectionOverlay selectionOverlay( checked, unchecked, 16, 6, 0x01 );
+
 // it's difficult to spot the cursor, so let it flash (frame time is ~50ms)
 const uint8_t cursorMaxFlashCount = 24;
 // flash if count is greater or equal the threshold
@@ -75,12 +78,29 @@ void loop()
         // check if button pressed
         if ( isFirePressed() )
         {
+          game.setStatus( Status::difficultySelection );
+
+          // increment seed while waiting - this way we get a good enough random seed
+          while ( isFirePressed() ) { game.incrementSeed(); }
+        }
+        break;
+      }
+
+      /////////////////////////////
+      // difficulty selection
+      case Status::difficultySelection:
+      {
+        // display intro screen
+        Tiny_Flip( false );
+
+        // check if button pressed
+        if ( isFirePressed() )
+        {
           game.setStatus( Status::prepareGame );
 
           // increment seed while waiting - this way we get a good enough random seed
           while ( isFirePressed() ) { game.incrementSeed(); }
         }
-
         break;
       }
 
@@ -160,12 +180,7 @@ void loop()
             else
             {
               // uncover this cell and all adjacent cells (if this cell is empty)
-              if ( game.uncoverCells( cursorX, cursorY ) )
-              {
-                // something bad did happen...
-                game.setStatus( Status::boom );
-              }
-              else
+              if ( !game.uncoverCells( cursorX, cursorY ) )
               {
                 // are all non mine fields uncovered?
                 if ( game.isWon() ) 
@@ -173,6 +188,11 @@ void loop()
                   // game won!
                   game.setStatus( Status::gameWon );
                 }
+              }
+              else
+              {
+                // something bad did happen...
+                game.setStatus( Status::boom );
               }
             }
             // wait a moment
@@ -266,7 +286,6 @@ void Tiny_Flip( bool invert )
 
   if ( gameStatus == Status::gameWon )
   {
-    Serial.println( F("GameStatus = gameWon") );
     // Congratulate player...
     memcpy_P( textBuffer, txtAllMinesFound, 32 );
   }
@@ -291,15 +310,26 @@ void Tiny_Flip( bool invert )
 
     switch ( gameStatus )
     {
+      ///////////////////////////
+      // display a compressed bitmap
       case Status::intro:
+      case Status::difficultySelection:
       case Status::prepareGame:
       case Status::boom:
       {
         // select bitmap
         if ( y == 0 )
         {
-          compressedBitmap = TitleScreen;
-          if ( gameStatus == Status::boom ) { compressedBitmap = BOOM; }
+          switch( gameStatus )
+          {
+            case Status::intro:
+            case Status::prepareGame:
+             compressedBitmap = TitleScreen; break;
+            case Status::difficultySelection:
+             compressedBitmap = difficultySelection; break;
+            case Status::boom:
+             compressedBitmap = BOOM; break;
+          }
         }
 
         // display the full line
@@ -307,6 +337,9 @@ void Tiny_Flip( bool invert )
         break;
       }
 
+      ///////////////////////////
+      // display the board, if the game is over,
+      // the board will be inverted
       case Status::playGame:
       case Status::gameOver:
       {
@@ -338,6 +371,9 @@ void Tiny_Flip( bool invert )
         break;
       }
 
+
+      ///////////////////////////
+      // the player won the game
       case Status::gameWon:
       {
         // display the zoomed text buffer
@@ -349,12 +385,16 @@ void Tiny_Flip( bool invert )
         break;
       }
 
+      ///////////////////////////
+      // this should never happen
       default:
       {
-        Serial.println( F("*** default ***") );
+      #if !defined(__AVR_ATtiny85__)
+        Serial.println( F("*** Tiny_Flip() : default branch hit - did you forget something? ***") );
+        while( 1 );
         break;
+      #endif
       }
-
     } // switch
     
     TinyFlip_FinishDisplayRow();

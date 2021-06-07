@@ -282,6 +282,9 @@ void Game::serialPrintGameStatus()
     case Status::intro:
       Serial.println( F("Status: intro") );
       break;
+    case Status::difficultySelection:
+      Serial.println( F("Status: difficultySelection") );
+      break;
     case Status::prepareGame:
       Serial.println( F("Status: prepareGame") );
       break;
@@ -296,9 +299,6 @@ void Game::serialPrintGameStatus()
       break;
     case Status::gameWon:
       Serial.println( F("Status: gameWon") );
-      break;
-    case Status::highscore:
-      Serial.println( F("Status: highscore") );
       break;
     default:
       Serial.println( F("Statis: <unknown status>") );
