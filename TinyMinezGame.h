@@ -28,36 +28,6 @@ enum class Status
   gameWon,
 };
 
-///////////////////////////////////////////////
-// helper "class" for the difficulty selection
-class SelectionOverlay
-{
-  public:
-  SelectionOverlay( uint8_t *bitmapChecked, uint8_t *bitmapUnchecked, uint8_t bitmapWidth, uint8_t bitmapOffsetX, uint8_t selectionMask ) :
-                  _bitmapSelected( bitmapChecked ),
-                  _bitmapUnselected( bitmapUnchecked ),
-                  _bitmapWidth( bitmapWidth ),
-                  _bitmapOffsetX( bitmapOffsetX ),
-                  _selectionMask( selectionMask )
-{}
-
-  uint8_t *_bitmapSelected;
-  uint8_t *_bitmapUnselected;
-  uint8_t _bitmapWidth;
-  uint8_t _bitmapOffsetX;
-  uint8_t _selectionMask;
-};
-
-#if 0
-SelectionOverlay::SelectionOverlay( uint8_t *bitmapChecked, uint8_t *bitmapUnchecked, uint8_t bitmapWidth, uint8_t bitmapOffsetX, uint8_t selectionMask ) :
-                  _bitmapSelected( bitmapChecked ),
-                  _bitmapUnselected( bitmapUnchecked ),
-                  _bitmapWidth( bitmapWidth ),
-                  _bitmapOffsetX( bitmapOffsetX ),
-                  _selectionMask( selectionMask )
-{}
-#endif
-
 class Game
 {
 public:

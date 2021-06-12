@@ -30,6 +30,7 @@
 #include "soundFX.h"
 #include "RLEdecompression.h"
 #include "TinyMinezGame.h"
+#include "SelectionOverlay.h"
 
 const unsigned char PROGMEM txtAllMinesFound[] = "CONGRATS\0\0ALL\0\0\0\0MINES\0\0FOUND!\0\0";
 
@@ -426,11 +427,9 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
 
   // overlay is only required during difficulty selection;
   SelectionOverlay *overlay = nullptr;
-  uint8_t *selectionBitmap;
   if ( game.getStatus() == Status::difficultySelection )
   {
     overlay = &selectionOverlay;
-    selectionBitmap = ( ( y >> 1 ) + 1 == overlay->_selectionMask ) ? overlay->_bitmapSelected : overlay->_bitmapUnselected;
   }
 
   // we will repurpose the text buffer to save valuable RAM
@@ -446,17 +445,7 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
 
     if ( overlay != nullptr )
     {
-      if ( ( x >= overlay->_bitmapOffsetX ) && ( x < overlay->_bitmapOffsetX + overlay->_bitmapWidth ) )
-      {
-        if ( ( y & 0x01 ) == 0x00 )
-        {
-          pixels |= pgm_read_byte( selectionBitmap + x - overlay->_bitmapOffsetX );
-        }
-        else
-        {
-          pixels |= pgm_read_byte( selectionBitmap + x - overlay->_bitmapOffsetX + overlay->_bitmapWidth );
-        }
-      }
+      pixels |= selectionOverlay.getOverlayPixels( x, y );
     }
     
     TinyFlip_SendPixels( pixels );
