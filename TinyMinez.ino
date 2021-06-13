@@ -20,6 +20,7 @@
 // perform a serial screenshot if this condition is true:
 //#define _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ ( isDownPressed() )
 
+#include <Arduino.h>
 #if !defined(__AVR_ATtiny85__)
   #include "SerialHexTools.h"
 #endif
@@ -30,15 +31,18 @@
 #include "soundFX.h"
 #include "RLEdecompression.h"
 #include "TinyMinezGame.h"
-#include "SelectionOverlay.h"
+#include "Selection.h"
 
 const unsigned char PROGMEM txtAllMinesFound[] = "CONGRATS\0\0ALL\0\0\0\0MINES\0\0FOUND!\0\0";
+
+// the mines per board for the 4 difficulties
+const uint8_t PROGMEM mineDifficulty[] = { 5, 10, 15, 20 };
 
 // the game object containing all logic and data
 Game game;
 
 // the difficulty selection
-SelectionOverlay selectionOverlay( checked, unchecked, 16, 6, 0x01 );
+Selection selection( checked, unchecked, 16, 6, 0x01 );
 
 // it's difficult to spot the cursor, so let it flash (frame time is ~50ms)
 const uint8_t cursorMaxFlashCount = 24;
@@ -91,17 +95,35 @@ void loop()
       // difficulty selection
       case Status::difficultySelection:
       {
-        // display intro screen
-        Tiny_Flip( false );
-
-        // check if button pressed
-        if ( isFirePressed() )
+        do
         {
-          game.setStatus( Status::prepareGame );
+          // display intro screen
+          Tiny_Flip( false );
 
-          // increment seed while waiting - this way we get a good enough random seed
-          while ( isFirePressed() ) { game.incrementSeed(); }
-        }
+          // check for user actions
+          if ( isUpPressed() ) 
+          { 
+            selection.previousSelection();
+            // wait a moment
+            _delay_ms( keyDelay );
+          }
+          if ( isDownPressed() )
+          { 
+            selection.nextSelection();
+            // wait a moment
+            _delay_ms( keyDelay );
+          }
+          // help the RNG
+          game.incrementSeed();
+
+        } while( !isFirePressed() );
+
+        // increment seed while waiting - this way we get a good enough random seed
+        while ( isFirePressed() ) { game.incrementSeed(); }
+
+        // prepare the game
+        game.setStatus( Status::prepareGame );
+
         break;
       }
 
@@ -109,8 +131,11 @@ void loop()
       // prepare new game
       case Status::prepareGame:
       {
+        // hide the selected number of mines
+        uint8_t numberOfMines = pgm_read_byte( mineDifficulty + selection.getSelection() );
+
         // create a new level depending on the difficulty (TODO)
-        game.createLevel( 10 );
+        game.createLevel( numberOfMines );
         // dump the level to serial
         game.serialPrintLevel();
         // start the game
@@ -425,11 +450,11 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
 {
   uint8_t xorValue = ( invert ? 0xff : 0x00 );
 
-  // overlay is only required during difficulty selection;
-  SelectionOverlay *overlay = nullptr;
+  // overlay is only required during difficulty selection
+  Selection *overlay = nullptr;
   if ( game.getStatus() == Status::difficultySelection )
   {
-    overlay = &selectionOverlay;
+    overlay = &selection;
   }
 
   // we will repurpose the text buffer to save valuable RAM
@@ -445,7 +470,7 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
 
     if ( overlay != nullptr )
     {
-      pixels |= selectionOverlay.getOverlayPixels( x, y );
+      pixels |= selection.getOverlayPixels( x, y );
     }
     
     TinyFlip_SendPixels( pixels );

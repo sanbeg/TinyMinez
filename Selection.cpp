@@ -1,8 +1,8 @@
-#include "SelectionOverlay.h"
+#include "Selection.h"
 #include "spritebank.h"
 
 /*--------------------------------------------------------------*/
-SelectionOverlay::SelectionOverlay( uint8_t *bitmapChecked, uint8_t *bitmapUnchecked, const uint8_t bitmapWidth, const uint8_t bitmapOffsetX, const uint8_t selection ) :
+Selection::Selection( uint8_t *bitmapChecked, uint8_t *bitmapUnchecked, const uint8_t bitmapWidth, const uint8_t bitmapOffsetX, const uint8_t selection ) :
                                     _bitmapSelected( bitmapChecked ),
                                     _bitmapUnselected( bitmapUnchecked ),
                                     _bitmapWidth( bitmapWidth ),
@@ -14,9 +14,9 @@ SelectionOverlay::SelectionOverlay( uint8_t *bitmapChecked, uint8_t *bitmapUnche
 /*--------------------------------------------------------------*/
 // Returns the selection overlay for ( x, y ) considering the 
 // selected item.
-uint8_t SelectionOverlay::getOverlayPixels( const uint8_t x, const uint8_t y )
+uint8_t Selection::getOverlayPixels( const uint8_t x, const uint8_t y )
 {
-  uint8_t pixels;
+  uint8_t pixels = 0;
   uint8_t *bitmap = ( ( y >> 1 ) == _selection ) ? _bitmapSelected : _bitmapUnselected;
 
   if ( ( x >= _bitmapOffsetX ) && ( x < _bitmapOffsetX + _bitmapWidth ) )
@@ -33,4 +33,3 @@ uint8_t SelectionOverlay::getOverlayPixels( const uint8_t x, const uint8_t y )
 
   return( pixels );
 }
-
