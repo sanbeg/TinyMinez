@@ -356,7 +356,7 @@ void Game::serialPrintLevel()
   for ( uint8_t y = 0; y < levelHeight; y++ )
   {
     hexdumpResetPositionCount();
-    hexdumpToSerial( levelData + y + levelWidth, levelWidth, false, true );
+    hexdumpToSerial( levelData + y * levelWidth, levelWidth, false, true );
   }
   Serial.println();
 #endif
