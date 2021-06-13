@@ -93,11 +93,9 @@ void Game::createLevel( uint8_t numOfMines )
 /*--------------------------------------------------------*/
 // uncovers all tiles adjacent to x,y
 // iterative version: not very elegant, but requires much less stack memory
-bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= true*/ )
+bool Game::uncoverCells( const int8_t x, const int8_t y )
 {
   uint8_t value = getCellValue( x, y );
-
-  Serial.print( F("uncoverCells( x = ") );Serial.print( x );Serial.print( F(", y = ") );Serial.print( y );Serial.println( F(" )") );
 
   // any work to do?
   if ( !( value & hidden ) )
@@ -106,9 +104,8 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
     return( false );
   }
 
-  // should this "click" be counted?
-  if ( countClick ) { clicksCount++; }
-
+  // count the click
+  clicksCount++;
   // uncover this tile (and remove any flags positioned on this tile)
   setCellValue( x, y, value & ~( hidden | flag ) );
 
@@ -121,8 +118,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
 
   bool cellUncovered;
 
-  // because recursion requires too much stack space, we have to solve the problem iterative
-  /*
+  // because recursion requires too much stack space, we have to solve the problem iteratively
   do
   {
     // no more cells uncovered yet
@@ -133,9 +129,9 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
     {
       for ( int8_t posX = 0; posX < levelWidth; posX++ )
       {
-        value = getCellValue( posX, posY );
-        // is this field already uncovered?
-        if ( !( value & hidden ) )
+        value = getCellValue( posX, posY ) & dataMask;
+        // is this cell empty and already uncovered?
+        if ( !( value & hidden ) && ( value == empty ) )
         {
           // check the neighborhood
           for ( int8_t offsetY = -1; offsetY <=1; offsetY++ )
@@ -150,8 +146,6 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
                 // covered, but no bomb there?
                 if ( ( value & hidden ) && !( value & bomb ) )
                 {
-                  Serial.print( F("uncover( x = ") );Serial.print( posX + offsetX );Serial.print( F(", y = ") );Serial.print( posY + offsetY );Serial.println( F(" )") );
-
                   // uncover this cell
                   setCellValue( posX + offsetX, posY + offsetY, value & ~( hidden | flag ) );
                   // a cell has been uncovered!
@@ -163,10 +157,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
         }
       }
     }
-    serialPrintLevel();
-    _delay_ms( 5000 );
   } while ( cellUncovered );
-*/
 
   return( false );
 }

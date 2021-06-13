@@ -35,7 +35,7 @@ public:
   Game( uint8_t levelWidth, uint8_t levelHeight );
   
   void      createLevel( uint8_t numOfMines );
-  bool      uncoverCells( const int8_t x, const int8_t y, bool countClick = true );
+  bool      uncoverCells( const int8_t x, const int8_t y /*, bool countClick = true*/ );
   void      uncoverAllCells();
   bool      isWon();
   Status    getStatus() { return( status ); }
