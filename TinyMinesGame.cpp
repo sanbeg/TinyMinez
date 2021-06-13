@@ -357,6 +357,7 @@ void Game::serialPrintLevel()
 // prints the current game status to serial output
 void Game::serialPrintGameStatus()
 {
+#if !defined(__AVR_ATtiny85__)
   switch( status )
   {
     case Status::intro:
@@ -384,6 +385,7 @@ void Game::serialPrintGameStatus()
       Serial.println( F("Statis: <unknown status>") );
       break;
   }
+#endif
 }
 
 /*--------------------------------------------------------*/

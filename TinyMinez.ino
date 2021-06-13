@@ -199,11 +199,10 @@ void loop()
             // let's check how long fire is pressed
             do
             {
-              // wait a moment
-              _delay_ms( keyDelay );
-              // count this!
-              if ( count < 255 ) { count++; 
-              }
+            // wait until the button is released
+            waitUntilButtonsReleased( keyDelay );
+            // count this!
+            if ( count < 255 ) { count++; }
             // wait unit the button is released
             } while ( isFirePressed() );
 

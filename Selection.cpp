@@ -3,11 +3,11 @@
 
 /*--------------------------------------------------------------*/
 Selection::Selection( uint8_t *bitmapChecked, uint8_t *bitmapUnchecked, const uint8_t bitmapWidth, const uint8_t bitmapOffsetX, const uint8_t selection ) :
-                                    _bitmapSelected( bitmapChecked ),
-                                    _bitmapUnselected( bitmapUnchecked ),
-                                    _bitmapWidth( bitmapWidth ),
-                                    _bitmapOffsetX( bitmapOffsetX ),
-                                    _selection( selection )
+                      _bitmapSelected( bitmapChecked ),
+                      _bitmapUnselected( bitmapUnchecked ),
+                      _bitmapWidth( bitmapWidth ),
+                      _bitmapOffsetX( bitmapOffsetX ),
+                      _selection( selection )
 {
 }
 
