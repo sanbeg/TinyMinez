@@ -95,24 +95,34 @@ void loop()
       // difficulty selection
       case Status::difficultySelection:
       {
+        // force the first redraw
+        bool userAction = true;
+
         do
         {
-          // display intro screen
-          Tiny_Flip( false );
-
           // check for user actions
           if ( isUpPressed() ) 
           { 
             selection.previousSelection();
-            // wait a moment
-            _delay_ms( keyDelay );
+            // user action detected
+            userAction = true;
           }
           if ( isDownPressed() )
           { 
             selection.nextSelection();
-            // wait a moment
-            _delay_ms( keyDelay );
+            // user action detected
+            userAction = true;
           }
+
+          if ( userAction )
+          {
+            Tiny_Flip( false );
+            // wait until the button is released
+            waitUntilButtonsReleased( keyDelay );
+            // action processed
+            userAction = false;
+          }
+
           // help the RNG
           game.incrementSeed();
 

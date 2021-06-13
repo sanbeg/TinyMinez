@@ -74,6 +74,21 @@ bool isFirePressed()
 }
 
 /*-------------------------------------------------------*/
+// wait until all buttons are released
+void waitUntilButtonsReleased()
+{
+  while( isLeftPressed() || isRightPressed() || isUpPressed() || isDownPressed() || isFirePressed() );
+}
+
+/*-------------------------------------------------------*/
+// wait until all buttons are released and wait a little delay
+void waitUntilButtonsReleased( const uint8_t delay )
+{
+  waitUntilButtonsReleased();
+  _delay_ms( delay );
+}
+
+/*-------------------------------------------------------*/
 void _variableDelay_us( uint8_t delayValue )
 {
   while ( delayValue-- != 0 )

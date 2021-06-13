@@ -23,6 +23,8 @@ bool isRightPressed();
 bool isUpPressed();
 bool isDownPressed();
 bool isFirePressed();
+void waitUntilButtonsReleased();
+void waitUntilButtonsReleased( const uint8_t delay );
 void _variableDelay_us( uint8_t delayValue );
 void Sound( const uint8_t freq, const uint8_t dur );
 

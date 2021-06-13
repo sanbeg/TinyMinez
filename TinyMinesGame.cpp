@@ -89,8 +89,93 @@ void Game::createLevel( uint8_t numOfMines )
   cursorY = levelHeight / 2;
 }
 
+#if 1
 /*--------------------------------------------------------*/
 // uncovers all tiles adjacent to x,y
+// iterative version: not very elegant, but requires much less stack memory
+bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= true*/ )
+{
+  uint8_t value = getCellValue( x, y );
+
+  Serial.print( F("uncoverCells( x = ") );Serial.print( x );Serial.print( F(", y = ") );Serial.print( y );Serial.println( F(" )") );
+
+  // any work to do?
+  if ( !( value & hidden ) )
+  {
+    // no work here...
+    return( false );
+  }
+
+  // should this "click" be counted?
+  if ( countClick ) { clicksCount++; }
+
+  // uncover this tile (and remove any flags positioned on this tile)
+  setCellValue( x, y, value & ~( hidden | flag ) );
+
+  // is it a bomb?
+  if ( value & bomb )
+  {
+    // GAME OVER...
+    return( true );
+  }
+
+  bool cellUncovered;
+
+  // because recursion requires too much stack space, we have to solve the problem iterative
+  /*
+  do
+  {
+    // no more cells uncovered yet
+    cellUncovered = false;
+
+    // walk the whole board
+    for ( int8_t posY = 0; posY < levelHeight; posY++ )
+    {
+      for ( int8_t posX = 0; posX < levelWidth; posX++ )
+      {
+        value = getCellValue( posX, posY );
+        // is this field already uncovered?
+        if ( !( value & hidden ) )
+        {
+          // check the neighborhood
+          for ( int8_t offsetY = -1; offsetY <=1; offsetY++ )
+          {
+            for ( int8_t offsetX = -1; offsetX <=1; offsetX++ )
+            {
+              // check for borders
+              if ( isPositionValid( posX + offsetX, posY + offsetY ) )
+              {
+                // get the cell content (and remove the cursor)
+                value =  getCellValue( posX + offsetX, posY + offsetY ) & dataMask;
+                // covered, but no bomb there?
+                if ( ( value & hidden ) && !( value & bomb ) )
+                {
+                  Serial.print( F("uncover( x = ") );Serial.print( posX + offsetX );Serial.print( F(", y = ") );Serial.print( posY + offsetY );Serial.println( F(" )") );
+
+                  // uncover this cell
+                  setCellValue( posX + offsetX, posY + offsetY, value & ~( hidden | flag ) );
+                  // a cell has been uncovered!
+                  cellUncovered = true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    serialPrintLevel();
+    _delay_ms( 5000 );
+  } while ( cellUncovered );
+*/
+
+  return( false );
+}
+
+#else
+
+/*--------------------------------------------------------*/
+// uncovers all tiles adjacent to x,y
+// recursive version - simple, but uses too much memory for the stack :(
 bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= true*/ )
 {
   uint8_t value = getCellValue( x, y );
@@ -111,7 +196,6 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   // is it a bomb?
   if ( value & bomb )
   {
-    Serial.println( F("***BOOOOOM***") );
     // GAME OVER...
     return( true );
   }
@@ -142,6 +226,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
     return( false );
   }
 }
+#endif
 
 /*--------------------------------------------------------*/
 // uncover all tiles after ***BOOM***
@@ -201,9 +286,7 @@ uint8_t Game::countNeighbours( const int8_t x, const int8_t y )
 // Access function to handle border management
 void Game::setCellValue( const int8_t x, const int8_t y, const uint8_t value )
 {
-  if (    ( x >= 0 ) && ( x < levelWidth )
-       && ( y >= 0 ) && ( y < levelHeight )
-     )
+  if ( isPositionValid( x, y ) )
   {
     levelData[x + y * levelWidth] = value;
   }
@@ -216,15 +299,21 @@ uint8_t Game::getCellValue( const int8_t x, const int8_t y )
 {
   uint8_t cellValue = empty;
 
-  if (    ( x >= 0 ) && ( x < levelWidth )
-       && ( y >= 0 ) && ( y < levelHeight )
-     )
+  if ( isPositionValid( x, y ) )
   {
     cellValue = levelData[x + y * levelWidth];
   }
 
   return( cellValue );
 }
+
+/*--------------------------------------------------------*/
+bool Game::isPositionValid( const int8_t x, const int8_t y )
+{
+  return(    ( x >= 0 ) && ( x < levelWidth )
+          && ( y >= 0 ) && ( y < levelHeight ) );
+}
+
 
 /*--------------------------------------------------------*/
 void Game::setCursorPosition( const uint8_t x, const uint8_t y )
