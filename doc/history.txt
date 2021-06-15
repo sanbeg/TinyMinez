@@ -20,6 +20,7 @@ The game display logic already works :)
 To do:
 
 * Fix bug on restart after ***BOOM*** when the board isn't reset
+* add sound!
 * remove dead code and data
 * clean up
 * change flags to UPPER CASE

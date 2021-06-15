@@ -44,10 +44,10 @@ Game game;
 // the difficulty selection
 Selection selection( checked, unchecked, 16, 6, 0x01 );
 
-// it's difficult to spot the cursor, so let it flash (frame time is ~50ms)
-const uint8_t cursorMaxFlashCount = 24;
+// it's difficult to spot the CURSOR, so let it flash (frame time is ~50ms)
+const uint8_t CursorMaxFlashCount = 24;
 // flash if count is greater or equal the threshold
-const uint8_t cursorFlashThreshold = cursorMaxFlashCount / 2;
+const uint8_t CURSORFlashThreshold = CursorMaxFlashCount / 2;
 // increase this counter on every display;
 uint8_t cursorFlashCount = 0;
 
@@ -127,7 +127,7 @@ void loop()
           {
             Tiny_Flip( false );
             // wait until the button is released
-            waitUntilButtonsReleased( keyDelay );
+            waitUntilButtonsReleased( KEY_DELAY );
             // action processed
             userAction = false;
           }
@@ -173,7 +173,7 @@ void loop()
           // increase random seed
           game.incrementSeed();
 
-          // get current cursor position
+          // get current CURSOR position
           uint8_t cursorX = game.getCursorX();
           uint8_t cursorY = game.getCursorY();
 
@@ -208,10 +208,10 @@ void loop()
             // let's check how long fire is pressed
             do
             {
-            // wait until the button is released
-            waitUntilButtonsReleased( keyDelay );
-            // count this!
-            if ( count < 255 ) { count++; }
+              // wait until the button is released
+              waitUntilButtonsReleased( KEY_DELAY );
+              // count this!
+              if ( count < 255 ) { count++; }
             // wait unit the button is released
             } while ( isFirePressed() );
 
@@ -245,7 +245,7 @@ void loop()
 
           // update cursor flash count
           cursorFlashCount++;
-          if ( cursorFlashCount >= cursorMaxFlashCount ) { cursorFlashCount = 0; }
+          if ( cursorFlashCount >= CursorMaxFlashCount ) { cursorFlashCount = 0; }
 
           // set cursor to the new position
           game.setCursorPosition( cursorX, cursorY );
@@ -261,7 +261,7 @@ void loop()
             // no forced update required
             playerAction = false;
             // wait a moment
-            _delay_ms( keyDelay );
+            _delay_ms( KEY_DELAY );
         
             // dump the level to serial
             game.serialPrintLevel();
@@ -278,16 +278,16 @@ void loop()
         for ( uint8_t flash = 0; flash < 10; flash++ ) { Tiny_Flip( flash == 0 ); _delay_ms( 100 ); }
 
         // uncover all mines
-        game.uncoverCells( bomb );
+        game.uncoverCells( BOMB );
         game.setStatus( Status::gameOver );
 
         while ( !isFirePressed() )
         { 
           // show the board with all tiles uncoverted
           Tiny_Flip( true );
-          // update cursor flash count
+          // update CURSOR flash count
           cursorFlashCount++;
-          if ( cursorFlashCount >= cursorMaxFlashCount ) { cursorFlashCount = 0; }
+          if ( cursorFlashCount >= CursorMaxFlashCount ) { cursorFlashCount = 0; }
         }
 
         // wait until fire is released
@@ -328,24 +328,16 @@ void Tiny_Flip( bool invert )
   clearTextBuffer();
   uint8_t *textBuffer = getTextBuffer();
 
-  if ( gameStatus == Status::gameWon )
-  {
-    // Congratulate player...
-    memcpy_P( textBuffer, txtAllMinesFound, 32 );
-  }
-  else
-  {
-    // prepare statistics when game is running
-    convertValueToDigits( game.getFlaggedTilesCount(), textBuffer + 1 + 1 * 4 );
-    convertValueToDigits( game.getHiddenTilesCount(), textBuffer + 1 + 4 * 4 );
-    convertValueToDigits( game.getClicksCount(), textBuffer + 1 + 7 * 4 );
-  }
+  // prepare statistics when game is running
+  convertValueToDigits( game.getFlaggedTilesCount(), textBuffer + 1 + 1 * 4 );
+  convertValueToDigits( game.getHiddenTilesCount(), textBuffer + 1 + 4 * 4 );
+  convertValueToDigits( game.getClicksCount(), textBuffer + 1 + 7 * 4 );
 
   // optional bitmap buffer pointer
   uint8_t *compressedBitmap;
 
-  // only invert cursor if flash count is less than threshold
-  uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
+  // only invert CURSOR if flash count is less than threshold
+  uint8_t CURSOR = ( cursorFlashCount < CURSORFlashThreshold ) ? 0xff : 0x00;
 
   // there are 8 rows of 8 pixels each
   for ( uint8_t y = 0; y < 8; y++)
@@ -378,7 +370,7 @@ void Tiny_Flip( bool invert )
             case Status::boom:
              compressedBitmap = BOOM; break;
             case Status::gameWon:
-             compressedBitmap = ( selection.getSelection() >= 3 ) ? game_won : AWESOME; break;
+             compressedBitmap = ( selection.getSelection() < 3 ) ? game_won : AWESOME; break;
           }
         }
 
@@ -403,8 +395,8 @@ void Tiny_Flip( bool invert )
           uint8_t cellValue = game.getCellValue( x >> 3, y );
 
           uint8_t pixels = getSpriteData( cellValue, spriteColumn );
-          // invert the tile with the cursor above it
-          if ( cellValue & 0x80 ) { pixels ^= cursor; }
+          // invert the tile with the CURSOR above it
+          if ( cellValue & 0x80 ) { pixels ^= CURSOR; }
           // invert anyway?
           pixels ^= invertValue;
 
@@ -420,22 +412,6 @@ void Tiny_Flip( bool invert )
         }
         break;
       }
-
-
-#if 0
-      ///////////////////////////
-      // the player won the game
-      case Status::gameWon:
-      {
-        // display the zoomed text buffer
-        for ( uint8_t x = 0; x < 128; x++)
-        {
-          uint8_t pixels = displayZoomedText( x, y );
-          TinyFlip_SendPixels( pixels );
-        }
-        break;
-      }
-#endif
 
       ///////////////////////////
       // this should never happen
@@ -510,19 +486,19 @@ uint8_t* displayBitmapRow( const uint8_t y, const uint8_t *bitmap, const bool in
 uint8_t getSpriteData( uint8_t cellValue, uint8_t spriteColumn )
 {
   // remove cursor
-  cellValue &= dataMask;
+  cellValue &= DATA_MASK;
 
-  if ( cellValue & flag )
+  if ( cellValue & FLAG )
   {
     // a flag was planted here!
     return( pgm_read_byte( flag8x8 + spriteColumn ) );
   }
-  if ( cellValue & hidden )
+  if ( cellValue & HIDDEN )
   {
     // this cellValue is still covered
     return( pgm_read_byte( tile8x8 + spriteColumn ) );
   }
-  if ( cellValue == bomb )
+  if ( cellValue == BOMB )
   {
     // a bomb!
     return( pgm_read_byte( bomb8x8 + spriteColumn ) );

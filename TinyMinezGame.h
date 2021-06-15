@@ -4,17 +4,17 @@
 
 const uint8_t MAX_GAME_COLS = 12;
 const uint8_t MAX_GAME_ROWS = 8;
-const uint8_t keyDelay = 133;
+const uint8_t KEY_DELAY = 133;
 
 enum
 {
-  empty     = 0x00,
-  countMask = 0x0f,
-  bomb      = 0x10,
-  flag      = 0x20,
-  hidden    = 0x40,
-  cursor    = 0x80,
-  dataMask  = 0x7f,
+  EMPTY      = 0x00,
+  COUNT_MASK = 0x0f,
+  BOMB       = 0x10,
+  FLAG       = 0x20,
+  HIDDEN     = 0x40,
+  CURSOR     = 0x80,
+  DATA_MASK  = 0x7f,
 };
 
 enum class Status
@@ -56,12 +56,12 @@ public:
   void      serialPrintGameStatus();
 
   uint8_t   getClicksCount() { return( clicksCount ); }
-  uint8_t   getFlaggedTilesCount() { return( countCellsWithAttribute( flag ) ); }
-  uint8_t   getHiddenTilesCount() { return( countCellsWithAttribute( hidden ) ); }
+  uint8_t   getFlaggedTilesCount() { return( countCellsWithAttribute( FLAG ) ); }
+  uint8_t   getHiddenTilesCount() { return( countCellsWithAttribute( HIDDEN ) ); }
 
 
 private:
-  uint8_t   countNeighbours( const int8_t x, const int8_t y );
+  uint8_t   countNeighbors( const int8_t x, const int8_t y );
   void      clearLevel();
   uint8_t   countCellsWithAttribute( uint8_t mask );
 

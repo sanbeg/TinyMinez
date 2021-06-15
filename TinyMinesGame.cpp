@@ -52,27 +52,27 @@ void Game::createLevel( uint8_t numOfMines )
       // get random position
       pos = random( levelWidth * levelHeight );
 
-    } while ( levelData[pos] != empty );
+    } while ( levelData[pos] != EMPTY );
 
     // place the mine
-    levelData[pos] = bomb;
+    levelData[pos] = BOMB;
   }
 
-  // now count all bombs in the neightbourhood
+  // now count all bombs in the neightborhood
   for ( int8_t y = 0; y < levelHeight; y++ )
   {
     for ( int8_t x = 0; x < levelWidth; x++ )
     {
-      if ( getCellValue( x, y ) != bomb )
+      if ( getCellValue( x, y ) != BOMB )
       {
         // count all bombs around x,y
-        uint8_t neighbours = countNeighbours( x, y );
+        uint8_t neighbors = countNeighbors( x, y );
 
         // bombs found?
-        if ( neighbours > 0 )
+        if ( neighbors > 0 )
         {
           // store the neighbour count in the lower 4 bits of the cell
-          levelData[x + y * levelWidth] |= neighbours;
+          levelData[x + y * levelWidth] |= neighbors;
         }
       }
     } // for x
@@ -81,7 +81,7 @@ void Game::createLevel( uint8_t numOfMines )
   // hide all cells
   for ( uint8_t n = 0; n < levelWidth * levelHeight; n++ )
   {
-    levelData[n] |= hidden;
+    levelData[n] |= HIDDEN;
   }
 
   // place cursor in the middle of the level
@@ -98,7 +98,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
   uint8_t value = getCellValue( x, y );
 
   // any work to do?
-  if ( !( value & hidden ) )
+  if ( !( value & HIDDEN ) )
   {
     // no work here...
     return( false );
@@ -107,10 +107,10 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
   // count the click
   clicksCount++;
   // uncover this tile (and remove any flags positioned on this tile)
-  setCellValue( x, y, value & ~( hidden | flag ) );
+  setCellValue( x, y, value & ~( HIDDEN | FLAG ) );
 
   // is it a bomb?
-  if ( value & bomb )
+  if ( value & BOMB )
   {
     // GAME OVER...
     return( true );
@@ -129,9 +129,9 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
     {
       for ( int8_t posX = 0; posX < levelWidth; posX++ )
       {
-        value = getCellValue( posX, posY ) & dataMask;
+        value = getCellValue( posX, posY ) & DATA_MASK;
         // is this cell empty and already uncovered?
-        if ( !( value & hidden ) && ( value == empty ) )
+        if ( !( value & HIDDEN ) && ( value == EMPTY ) )
         {
           // check the neighborhood
           for ( int8_t offsetY = -1; offsetY <=1; offsetY++ )
@@ -142,12 +142,12 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
               if ( isPositionValid( posX + offsetX, posY + offsetY ) )
               {
                 // get the cell content (and remove the cursor)
-                value =  getCellValue( posX + offsetX, posY + offsetY ) & dataMask;
+                value =  getCellValue( posX + offsetX, posY + offsetY ) & DATA_MASK;
                 // covered, but no bomb there?
-                if ( ( value & hidden ) && !( value & bomb ) )
+                if ( ( value & HIDDEN ) && !( value & BOMB ) )
                 {
                   // uncover this cell
-                  setCellValue( posX + offsetX, posY + offsetY, value & ~( hidden | flag ) );
+                  setCellValue( posX + offsetX, posY + offsetY, value & ~( HIDDEN | FLAG ) );
                   // a cell has been uncovered!
                   cellUncovered = true;
                 }
@@ -172,7 +172,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   uint8_t value = getCellValue( x, y );
 
   // any work to do?
-  if ( !( value & hidden ) )
+  if ( !( value & HIDDEN ) )
   {
     // no work here...
     return( false );
@@ -185,7 +185,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   setCellValue( x, y, value & ~( hidden | flag ) );
 
   // is it a bomb?
-  if ( value & bomb )
+  if ( value & BOMB )
   {
     // GAME OVER...
     return( true );
@@ -193,8 +193,8 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
   else
   {
     // is this tile empty?
-    uint8_t value = getCellValue( x, y ) & dataMask;
-    if ( value == empty )
+    uint8_t value = getCellValue( x, y ) & DATA_MASK;
+    if ( value == EMPTY )
     {
       // uncover surrounding area (if )
       for ( int8_t offsetY = -1; offsetY <= 1; offsetY++ )
@@ -204,7 +204,7 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
           // let's have a look
           value = getCellValue( x + offsetX, y + offsetY ) & dataMask;
           // covered, but no bomb there?
-          if ( ( value & hidden ) && !( value & bomb ) )
+          if ( ( value & HIDDEN ) && !( value & BOMB ) )
           {
             // play it again, Sam!
             uncoverCells( x + offsetX, y + offsetY, false );
@@ -230,7 +230,7 @@ void Game::uncoverCells( uint8_t mask /*= 0xff*/ )
       uint8_t value = getCellValue( x, y );
       if ( value & mask )
       {
-        setCellValue( x, y, value & ~hidden );
+        setCellValue( x, y, value & ~HIDDEN );
       }
     }
   }
@@ -242,7 +242,7 @@ void Game::uncoverCells( uint8_t mask /*= 0xff*/ )
 // (Less, because there might be a "continue" play mode)
 bool Game::isWon()
 {
-  return( countCellsWithAttribute( hidden ) <= minesCount );
+  return( countCellsWithAttribute( HIDDEN ) <= minesCount );
 }
 
 /*--------------------------------------------------------*/
@@ -250,31 +250,31 @@ bool Game::isWon()
 void Game::toggleFlag( const int8_t x, const int8_t y )
 {
   uint8_t cellValue = getCellValue( x, y );
-  if ( cellValue & hidden )
+  if ( cellValue & HIDDEN )
   {
-    setCellValue( x, y, cellValue ^ flag );
+    setCellValue( x, y, cellValue ^ FLAG );
   }
 }
 
 /*--------------------------------------------------------*/
 // We can safely count the 3x3 neighbourhood, because the center
 // position is not a bomb - otherwise we would already be dead ;)
-uint8_t Game::countNeighbours( const int8_t x, const int8_t y )
+uint8_t Game::countNeighbors( const int8_t x, const int8_t y )
 {
-  uint8_t neighbours = 0;
+  uint8_t neighbors = 0;
 
   for ( int8_t offsetY = -1; offsetY <= 1; offsetY++ )
   {
     for ( int8_t offsetX = -1; offsetX <= 1; offsetX++ )
     {
-      if ( getCellValue( x + offsetX, y + offsetY ) & bomb )
+      if ( getCellValue( x + offsetX, y + offsetY ) & BOMB )
       {
-        neighbours++;
+        neighbors++;
       }
     }
   }
 
-  return( neighbours );
+  return( neighbors );
 }
 
 /*--------------------------------------------------------*/
@@ -292,7 +292,7 @@ void Game::setCellValue( const int8_t x, const int8_t y, const uint8_t value )
 // Access function to handle border management
 uint8_t Game::getCellValue( const int8_t x, const int8_t y )
 {
-  uint8_t cellValue = empty;
+  uint8_t cellValue = EMPTY;
 
   if ( isPositionValid( x, y ) )
   {
@@ -320,11 +320,11 @@ void Game::setCursorPosition( const uint8_t x, const uint8_t y )
   // remove old cursor (wherever it was)
   for ( uint8_t n = 0; n < levelWidth * levelHeight; n++ )
   {
-    levelData[n] &= dataMask;
+    levelData[n] &= DATA_MASK;
   }
 
   // set new cursor
-  levelData[x + y * levelWidth] |= cursor;
+  levelData[x + y * levelWidth] |= CURSOR;
 }
 
 /*--------------------------------------------------------*/
@@ -335,7 +335,7 @@ void Game::clearLevel()
   flagsCount = 0;
   clicksCount = 0;
   // nothing is to be found here
-  memset( levelData, empty, MAX_GAME_COLS * MAX_GAME_ROWS );
+  memset( levelData, EMPTY, MAX_GAME_COLS * MAX_GAME_ROWS );
 }
 
 /*--------------------------------------------------------*/
