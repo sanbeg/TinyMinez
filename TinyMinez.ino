@@ -80,6 +80,9 @@ void loop()
       case Status::intro:
       case Status::rules:
       {
+        // alternate between title screen and rules
+        game.setStatus( ( count++ < 128 ) ? Status::intro : Status::rules );
+
         // display intro screen
         Tiny_Flip( false );
 
@@ -91,10 +94,6 @@ void loop()
           // increment seed while waiting - this way we get a good enough random seed
           while ( isFirePressed() ) { game.incrementSeed(); }
         }
-
-        // alternate between title screen and rules
-        game.setStatus( ( count++ < 128 ) ? Status::intro : Status::rules );
-        
         break;
       }
 
@@ -362,6 +361,7 @@ void Tiny_Flip( bool invert )
       case Status::difficultySelection:
       case Status::prepareGame:
       case Status::boom:
+      case Status::gameWon:
       {
         // select bitmap
         if ( y == 0 )
@@ -377,6 +377,8 @@ void Tiny_Flip( bool invert )
              compressedBitmap = difficultySelection; break;
             case Status::boom:
              compressedBitmap = BOOM; break;
+            case Status::gameWon:
+             compressedBitmap = ( selection.getSelection() >= 3 ) ? game_won : AWESOME; break;
           }
         }
 
@@ -420,6 +422,7 @@ void Tiny_Flip( bool invert )
       }
 
 
+#if 0
       ///////////////////////////
       // the player won the game
       case Status::gameWon:
@@ -432,6 +435,7 @@ void Tiny_Flip( bool invert )
         }
         break;
       }
+#endif
 
       ///////////////////////////
       // this should never happen

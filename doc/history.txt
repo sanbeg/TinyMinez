@@ -1,7 +1,7 @@
 This will become a MineSweeper hommage on TinyJoypad!
 
-Sketch uses 6918 bytes (84%) of program storage space. Maximum is 8192 bytes.
-Global variables use 263 bytes (51%) of dynamic memory, leaving 249 bytes for local variables. Maximum is 512 bytes.
+Sketch uses 7508 bytes (91%) of program storage space. Maximum is 8192 bytes.
+Global variables use 254 bytes (49%) of dynamic memory, leaving 258 bytes for local variables. Maximum is 512 bytes.
 
 The game display logic already works :)
 
@@ -15,10 +15,14 @@ The game display logic already works :)
 + stack overflow -> changed uncovering from recursion to iteration(s)
 + uncover all bombs on ***BOOM***
 + added some instructions
++ added two different GAME WON screens depending on difficulty
 
 To do:
 
-* game won screen should be more satisfying
+* Fix bug on restart after ***BOOM*** when the board isn't reset
+* remove dead code and data
+* clean up
+* change flags to UPPER CASE
 * change numbers font to 6x8 (8x8 doesn't look good)? Or redo digits
 * increase board size to 14 * 8?
 * add scrolling for even larger fields?
