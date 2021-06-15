@@ -14,10 +14,10 @@ The game display logic already works :)
 + detect if the player lost or won the game
 + stack overflow -> changed uncovering from recursion to iteration(s)
 + uncover all bombs on ***BOOM***
++ added some instructions
 
 To do:
 
-* add some instructions?
 * game won screen should be more satisfying
 * change numbers font to 6x8 (8x8 doesn't look good)? Or redo digits
 * increase board size to 14 * 8?

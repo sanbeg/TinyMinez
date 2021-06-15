@@ -65,6 +65,8 @@ void loop()
 {
   game.setStatus( Status::intro );
 
+  uint8_t count = 0;
+
   // game main loop
   while ( true )
   {
@@ -76,6 +78,7 @@ void loop()
       /////////////////////////////
       // intro screen
       case Status::intro:
+      case Status::rules:
       {
         // display intro screen
         Tiny_Flip( false );
@@ -88,6 +91,10 @@ void loop()
           // increment seed while waiting - this way we get a good enough random seed
           while ( isFirePressed() ) { game.incrementSeed(); }
         }
+
+        // alternate between title screen and rules
+        game.setStatus( ( count++ < 128 ) ? Status::intro : Status::rules );
+        
         break;
       }
 
@@ -95,6 +102,9 @@ void loop()
       // difficulty selection
       case Status::difficultySelection:
       {
+        // reset title flip count
+        count = 0;
+
         // force the first redraw
         bool userAction = true;
 
@@ -348,6 +358,7 @@ void Tiny_Flip( bool invert )
       ///////////////////////////
       // display a compressed bitmap
       case Status::intro:
+      case Status::rules:
       case Status::difficultySelection:
       case Status::prepareGame:
       case Status::boom:
@@ -360,6 +371,8 @@ void Tiny_Flip( bool invert )
             case Status::intro:
             case Status::prepareGame:
              compressedBitmap = TitleScreen; break;
+            case Status::rules:
+              compressedBitmap = Rules; break;
             case Status::difficultySelection:
              compressedBitmap = difficultySelection; break;
             case Status::boom:

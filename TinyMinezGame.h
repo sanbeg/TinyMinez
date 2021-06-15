@@ -20,6 +20,7 @@ enum
 enum class Status
 {
   intro,
+  rules,
   difficultySelection,
   prepareGame,
   playGame,
