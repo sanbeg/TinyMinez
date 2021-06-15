@@ -36,7 +36,7 @@ public:
   
   void      createLevel( uint8_t numOfMines );
   bool      uncoverCells( const int8_t x, const int8_t y /*, bool countClick = true*/ );
-  void      uncoverAllCells();
+  void      uncoverCells( uint8_t mask = 0xff );
   bool      isWon();
   Status    getStatus() { return( status ); }
   void      setStatus( Status newStatus ) { status = newStatus; }

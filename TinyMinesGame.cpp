@@ -220,14 +220,18 @@ bool Game::uncoverCells( const int8_t x, const int8_t y, bool countClick /*= tru
 #endif
 
 /*--------------------------------------------------------*/
-// uncover all tiles after ***BOOM***
-void Game::uncoverAllCells()
+// uncover selected tiles after ***BOOM***
+void Game::uncoverCells( uint8_t mask /*= 0xff*/ )
 {
   for ( uint8_t y = 0; y < levelHeight; y++ )
   {
     for ( uint8_t x = 0; x < levelWidth; x++ )
     {
-      setCellValue( x, y, getCellValue( x, y ) & ~hidden );
+      uint8_t value = getCellValue( x, y );
+      if ( value & mask )
+      {
+        setCellValue( x, y, value & ~hidden );
+      }
     }
   }
 

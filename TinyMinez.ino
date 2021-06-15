@@ -268,8 +268,8 @@ void loop()
         // display ***BOOM*** screen and flash 
         for ( uint8_t flash = 0; flash < 10; flash++ ) { Tiny_Flip( flash == 0 ); _delay_ms( 100 ); }
 
-        // uncover all cells
-        //game.uncoverAllCells();
+        // uncover all mines
+        game.uncoverCells( bomb );
         game.setStatus( Status::gameOver );
 
         while ( !isFirePressed() )
