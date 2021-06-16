@@ -25,7 +25,6 @@
   #include "SerialHexTools.h"
 #endif
 #include "spritebank.h"
-#include "smallFont.h"
 #include "tinyJoypadUtils.h"
 #include "textUtils.h"
 #include "soundFX.h"
@@ -44,10 +43,10 @@ Game game;
 // the difficulty selection
 Selection selection( checked, unchecked, 16, 6, 0x01 );
 
-// it's difficult to spot the CURSOR, so let it flash (frame time is ~50ms)
+// it's difficult to spot the cursor, so let it flash (frame time is ~50ms)
 const uint8_t CursorMaxFlashCount = 24;
 // flash if count is greater or equal the threshold
-const uint8_t CURSORFlashThreshold = CursorMaxFlashCount / 2;
+const uint8_t cursorFlashThreshold = CursorMaxFlashCount / 2;
 // increase this counter on every display;
 uint8_t cursorFlashCount = 0;
 
@@ -173,7 +172,7 @@ void loop()
           // increase random seed
           game.incrementSeed();
 
-          // get current CURSOR position
+          // get current cursor position
           uint8_t cursorX = game.getCursorX();
           uint8_t cursorY = game.getCursorY();
 
@@ -209,7 +208,7 @@ void loop()
             do
             {
               // wait until the button is released
-              waitUntilButtonsReleased( KEY_DELAY );
+              _delay_ms( KEY_DELAY );
               // count this!
               if ( count < 255 ) { count++; }
             // wait unit the button is released
@@ -285,7 +284,7 @@ void loop()
         { 
           // show the board with all tiles uncoverted
           Tiny_Flip( true );
-          // update CURSOR flash count
+          // update cursor flash count
           cursorFlashCount++;
           if ( cursorFlashCount >= CursorMaxFlashCount ) { cursorFlashCount = 0; }
         }
@@ -312,6 +311,8 @@ void loop()
 
         // switch to intro screen
         game.setStatus( Status::intro );
+
+        break;
       }
 
     } // switch
@@ -336,8 +337,8 @@ void Tiny_Flip( bool invert )
   // optional bitmap buffer pointer
   uint8_t *compressedBitmap;
 
-  // only invert CURSOR if flash count is less than threshold
-  uint8_t CURSOR = ( cursorFlashCount < CURSORFlashThreshold ) ? 0xff : 0x00;
+  // only invert cursor if flash count is less than threshold
+  uint8_t cursor = ( cursorFlashCount < cursorFlashThreshold ) ? 0xff : 0x00;
 
   // there are 8 rows of 8 pixels each
   for ( uint8_t y = 0; y < 8; y++)
@@ -395,8 +396,8 @@ void Tiny_Flip( bool invert )
           uint8_t cellValue = game.getCellValue( x >> 3, y );
 
           uint8_t pixels = getSpriteData( cellValue, spriteColumn );
-          // invert the tile with the CURSOR above it
-          if ( cellValue & 0x80 ) { pixels ^= CURSOR; }
+          // invert the tile with the cursor above it
+          if ( cellValue & 0x80 ) { pixels ^= cursor; }
           // invert anyway?
           pixels ^= invertValue;
 

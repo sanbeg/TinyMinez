@@ -3,7 +3,6 @@
 #include "textUtils.h"
 #include "bitTables.h"
 #include "spritebank.h"
-#include "font8x8.h"
 
 #undef TEXT_UTILS_SUPPRESS_LEADING_ZEROES
 
@@ -40,9 +39,8 @@ void convertValueToDigits( uint8_t value, uint8_t *digits )
 }
 
 /*--------------------------------------------------------------*/
-// Displays a line of ASCII character from the smallFont in the 
-// top line of the screen. To save flash memory, the font ranges
-// only from '0' to '9'.
+// Displays the digits on the screen. 
+// To save flash memory, the font ranges only from '0' to '9'.
 uint8_t displayText( uint8_t x, uint8_t y )
 {
   // find appropriate character in text array (font width is 8 px),
@@ -55,48 +53,6 @@ uint8_t displayText( uint8_t x, uint8_t y )
     return( pgm_read_byte( segementedDigits + ( value - '0' ) * 8 + ( x & 0x07 ) ) );
   }
 
-  return( 0x00 );
-}
-
-/*--------------------------------------------------------------*/
-// Display zoomed ASCII character from the font in four
-// lines of 8 characters. The zoom factor is fixed to '2'.
-// If bit 7 is set, the character will be displayed inverted.
-// To save flash memory, the font ranges only from '0' to 'Z'.
-uint8_t displayZoomedText( uint8_t x, uint8_t y )
-{
-  // Find appropriate character in text array:
-  // Font width is 8 px, zoom is 2x, so fetch a new character every 16 pixels
-  uint8_t value = textBuffer[((y >> 1) << 3) + ( x >> 4 )];
-  // is it a valid character?
-  if ( value != 0 )
-  {
-    // MSB set? -> inverse video
-    uint8_t reverse = value & 0x80;
-    // remove MSB from value
-    value -= reverse;
-    // return the column value
-    value = ( pgm_read_byte( font8x8 + ( ( value - ' ' ) << 3 ) + ( ( x >> 1 ) & 0x07 ) ) );
-    if ( ( y & 0x01 ) == 0 )
-    {
-      // upper line
-      value = ( pgm_read_byte( nibbleZoom + ( value & 0x0f ) ) );
-    }
-    else
-    {
-      // lower line
-      value = ( pgm_read_byte( nibbleZoom + ( value >> 4 ) ) );
-    }
-    // invert?
-    if ( reverse )
-    {
-      // invert pixels
-      value = value ^ 0xff;
-    }
-    return( value );
-  }
-
-  // Please move along, there is nothing to be seen here...
   return( 0x00 );
 }
 

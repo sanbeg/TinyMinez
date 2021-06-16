@@ -16,14 +16,13 @@ The game display logic already works :)
 + uncover all bombs on ***BOOM***
 + added some instructions
 + added two different GAME WON screens depending on difficulty
++ fixed bug on restart when the board isn't reset after the game was won 
 
 To do:
 
-* Fix bug on restart after ***BOOM*** when the board isn't reset
 * add sound!
 * remove dead code and data
 * clean up
-* change flags to UPPER CASE
 * change numbers font to 6x8 (8x8 doesn't look good)? Or redo digits
 * increase board size to 14 * 8?
 * add scrolling for even larger fields?
