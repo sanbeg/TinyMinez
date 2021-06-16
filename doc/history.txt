@@ -1,21 +1,20 @@
 This will become a MineSweeper hommage on TinyJoypad!
 
-Sketch uses 7508 bytes (91%) of program storage space. Maximum is 8192 bytes.
+Sketch uses 7358 bytes (89%) of program storage space. Maximum is 8192 bytes.
 Global variables use 254 bytes (49%) of dynamic memory, leaving 258 bytes for local variables. Maximum is 512 bytes.
 
-The game display logic already works :)
+Already achieved:
 
 + start screen (during which the random seed can be increased)
 + *BOOM* screen
 + flashing on *BOOM*
 + display uncovered level after explosion
-+ added different difficulty levels (5, 10, 15, 20 bombs?)
++ added different difficulty levels (5, 10, 15, 20 bombs)
 + added difficulty selection
 + detect if the player lost or won the game
-+ stack overflow -> changed uncovering from recursion to iteration(s)
-+ uncover all bombs on ***BOOM***
-+ added some instructions
-+ added two different GAME WON screens depending on difficulty
++ stack overflow on uncovering -> changed uncovering from recursion to iteration(s)
++ added instructions screen
++ added two different GAME WON screens depending on difficulty level
 + fixed bug on restart when the board isn't reset after the game was won 
 
 To do:
@@ -23,7 +22,6 @@ To do:
 * add sound!
 * remove dead code and data
 * clean up
-* change numbers font to 6x8 (8x8 doesn't look good)? Or redo digits
 * increase board size to 14 * 8?
 * add scrolling for even larger fields?
 * add sound effects (pitch depending of number of mines in the neighbourhood?)
