@@ -32,10 +32,10 @@
 #include "TinyMinezGame.h"
 #include "Selection.h"
 
-const unsigned char PROGMEM txtAllMinesFound[] = "CONGRATS\0\0ALL\0\0\0\0MINES\0\0FOUND!\0\0";
+const uint8_t KEY_DELAY = 100;
 
 // the mines per board for the 4 difficulties
-const uint8_t PROGMEM mineDifficulty[] = { 5, 10, 15, 20 };
+const uint8_t mineDifficulty[]PROGMEM = { 5, 10, 15, 20 };
 
 // the game object containing all logic and data
 Game game;
@@ -124,6 +124,9 @@ void loop()
 
           if ( userAction )
           {
+            // play a sound
+            blip4();
+            // display new selection
             Tiny_Flip( false );
             // wait until the button is released
             waitUntilButtonsReleased( KEY_DELAY );
@@ -236,10 +239,17 @@ void loop()
               {
                 // something bad did happen...
                 game.setStatus( Status::boom );
+                // play the appropriate sound
+                explosion();
               }
             }
             // wait a moment
             playerAction = true;
+          }
+          else if ( playerAction )
+          {
+            // play a sound
+            blip2();
           }
 
           // update cursor flash count

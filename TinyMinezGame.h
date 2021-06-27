@@ -4,7 +4,6 @@
 
 const uint8_t MAX_GAME_COLS = 12;
 const uint8_t MAX_GAME_ROWS = 8;
-const uint8_t KEY_DELAY = 133;
 
 enum
 {

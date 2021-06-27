@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include "TinyMinezGame.h"
+#include "tinyJoypadUtils.h"
+#include "soundFX.h"
 
 #if !defined(__AVR_ATtiny85__)
   #include "SerialHexTools.h"
@@ -121,6 +123,8 @@ bool Game::uncoverCells( const int8_t x, const int8_t y )
   // because recursion requires too much stack space, we have to solve the problem iteratively
   do
   {
+    blip4();
+
     // no more cells uncovered yet
     cellUncovered = false;
 
