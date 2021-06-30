@@ -16,10 +16,11 @@ Already achieved:
 + added instructions screen
 + added two different GAME WON screens depending on difficulty level
 + fixed bug on restart when the board isn't reset after the game was won 
++ added some first sound FX
++ added sound support for Arduino Uno R3 and Mega 2560
 
 To do:
 
-* add sound!
 * remove dead code and data
 * clean up
 * increase board size to 14 * 8?
