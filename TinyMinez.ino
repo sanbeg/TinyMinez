@@ -1,7 +1,20 @@
-//   >>>>>  T-I-N-Y  M-I-N-E-Z v0.1 for ATTINY85  GPLv3 <<<<
+//   >>>>>  T-I-N-Y  M-I-N-E-Z v1.0 for ATTINY85  GPLv3 <<<<
 //						Tinyjoypad rev2 compatible
 //                   Programmer: Sven B 2021
 //              Contact EMAIL: 
+
+// Tiny Minez v1.0 is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // The code works at 16MHZ internal
 // and uses ssd1306xled Library for SSD1306 oled display 128x64.
@@ -13,12 +26,10 @@
 // Please enable LTO (link time optimization) and disable 'millis()' and
 // 'micros()'.
 
-// show an 8x8 grid overlay
-//#define _SHOW_GRID_OVERLAY
 // enable serial screenshot
 //#define _ENABLE_SERIAL_SCREENSHOT_
 // perform a serial screenshot if this condition is true:
-//#define _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ ( isDownPressed() )
+//#define _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ ( isRightPressed() )
 
 #include <Arduino.h>
 #if !defined(__AVR_ATtiny85__)
@@ -273,9 +284,6 @@ void loop()
             playerAction = false;
             // wait a moment
             _delay_ms( KEY_DELAY );
-        
-            // dump the level to serial
-            game.serialPrintLevel();
           }
         }
         break;
@@ -451,17 +459,13 @@ void Tiny_Flip( bool invert )
   // display the whole screen at once
   TinyFlip_DisplayBuffer();
 
-#if !defined(__AVR_ATtiny85__)
   #ifdef _ENABLE_SERIAL_SCREENSHOT_
     if ( _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ )
     {
-      // print a short header
-      Serial.println(F("\r\nTinyMinez screenshot"));
-      // output the full buffer as a hexdump to the serial port
-      printScreenBufferToSerial( display.getBuffer(), 128, 8 );
+      // print a screenshot to the serial interface
+      TinyFlip_SerialScreenshot();
     }
   #endif
-#endif
 }
 
 /*--------------------------------------------------------*/

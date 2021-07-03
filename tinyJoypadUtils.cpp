@@ -10,8 +10,11 @@
 #include <Arduino.h>
 #include "tinyJoypadUtils.h"
 
-// include Adafruit library and immediately create an object
 #if !defined(__AVR_ATtiny85__)
+  // include serial output functions
+  #include "SerialHexTools.h"
+
+  // include Adafruit library and immediately create an object
   #include <Adafruit_SSD1306.h>
   Adafruit_SSD1306 display( 128, 64, &Wire, -1 );
   uint8_t *adafruitBuffer;
@@ -184,5 +187,21 @@ void TinyFlip_DisplayBuffer()
 #if !defined(__AVR_ATtiny85__) /* codepath for any Adafruit_SSD1306 supported MCU */
   // display buffer (not necessary)
   display.display();
+#endif
+}
+
+/*-------------------------------------------------------*/
+// Outputs the screen as one hex byte per pixel. To get an actual image perform the following steps:
+// (1) The output can be converted to binary with 'https://tomeko.net/online_tools/hex_to_file.php?lang=en' online.
+// (2) Then import the file with IrfanView (https://www.irfanview.com/): Open as -> RAW file...
+// (3) Set Image width to 64 and Image height to 128, 8 BPP -> OK
+// (4) Rotate and mirror the result as needed :)
+void TinyFlip_SerialScreenshot()
+{
+#if !defined(__AVR_ATtiny85__) /* codepath for any Adafruit_SSD1306 supported MCU */
+  // print a short header
+  Serial.println(F("\r\nTinyMinez screenshot"));
+  // output the full buffer as a hexdump to the serial port
+  printScreenBufferToSerial( display.getBuffer(), 128, 8 );
 #endif
 }

@@ -34,3 +34,4 @@ void TinyFlip_PrepareDisplayRow( uint8_t y );
 void TinyFlip_SendPixels( uint8_t pixels );
 void TinyFlip_FinishDisplayRow();
 void TinyFlip_DisplayBuffer();
+void TinyFlip_SerialScreenshot();
