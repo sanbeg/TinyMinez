@@ -18,15 +18,22 @@ Already achieved:
 + fixed bug on restart when the board isn't reset after the game was won 
 + added some first sound FX
 + added sound support for Arduino Uno R3 and Mega 2560
++ added tune for losing and winning
+
 
 To do:
 
 * remove dead code and data
 * clean up
-* increase board size to 14 * 8?
-* add scrolling for even larger fields?
+
+
+Some future ideas:
+
+* add a time limit?
 * add sound effects (pitch depending of number of mines in the neighbourhood?)
 * try vertical shearing on explosion (like a rotation)
 * always save game state to EEPROM?
 * replay level function (store last seed on level start)
 * replay is optional (configuration value)
+* increase board size to 14 * 8?
+* add scrolling for even larger fields?

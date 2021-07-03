@@ -32,10 +32,11 @@
 #include "TinyMinezGame.h"
 #include "Selection.h"
 
-const uint8_t KEY_DELAY = 100;
+const uint8_t KEY_DELAY = 50;
+const uint8_t FLAG_DELAY = 100;
 
 // the mines per board for the 4 difficulties
-const uint8_t mineDifficulty[]PROGMEM = { 5, 10, 15, 20 };
+const uint8_t mineDifficulty[] PROGMEM = { 5, 10, 15, 20 };
 
 // the game object containing all logic and data
 Game game;
@@ -125,7 +126,7 @@ void loop()
           if ( userAction )
           {
             // play a sound
-            blip4();
+            blip5();
             // display new selection
             Tiny_Flip( false );
             // wait until the button is released
@@ -152,6 +153,9 @@ void loop()
       // prepare new game
       case Status::prepareGame:
       {
+        // acknowledge the pressed button
+        blip5();
+
         // hide the selected number of mines
         uint8_t numberOfMines = pgm_read_byte( mineDifficulty + selection.getSelection() );
 
@@ -211,7 +215,7 @@ void loop()
             do
             {
               // wait until the button is released
-              _delay_ms( KEY_DELAY );
+              _delay_ms( FLAG_DELAY );
               // count this!
               if ( count < 255 ) { count++; }
             // wait unit the button is released
@@ -239,8 +243,6 @@ void loop()
               {
                 // something bad did happen...
                 game.setStatus( Status::boom );
-                // play the appropriate sound
-                explosion();
               }
             }
             // wait a moment
@@ -283,6 +285,9 @@ void loop()
       // show game over screen (aka BOOM screen)
       case Status::boom:
       {
+        // play some sound
+        failingSound();
+
         // display ***BOOM*** screen and flash 
         for ( uint8_t flash = 0; flash < 10; flash++ ) { Tiny_Flip( flash == 0 ); _delay_ms( 100 ); }
 
@@ -302,6 +307,9 @@ void loop()
         // wait until fire is released
         while ( isFirePressed() );
 
+        // acknowledge the button
+        blip5();
+
         // return to the title screen
         game.setStatus( Status::intro );
 
@@ -315,10 +323,11 @@ void loop()
         // display game won screen
         Tiny_Flip( false );
         // play a tune
-        // ...
+        successSound();
         // wait for button
         waitForFireButtonPressedAndReleased();
-
+        // acknowledge the button
+        blip5();
         // switch to intro screen
         game.setStatus( Status::intro );
 
