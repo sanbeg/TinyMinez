@@ -15,8 +15,8 @@ The game is won, when all non-mine tiles are uncovered and obviously lost, when 
 ## Features
 * Board size is 12 * 8 tiles
 * Difficulty selection: 5, 10, 15 or 20 bombs
-* some simple sound effects
-* FUN
+* sound effects
+* FUN and ***BOOOM***
 
 
 ## Open Points
@@ -33,8 +33,8 @@ The game is won, when all non-mine tiles are uncovered and obviously lost, when 
 ## Technical Details
 The only really difficulty in this project was to get the uncovering of the tiles done.
 My first idea (and probably the most straightforward solution) was to use recursion.
-Due to the limit RAM of the ATtyny85 that cause the game board to be overwritten with 
-garbage bytes (aka the stack) when uncovering an almost empty board.
+Due to the limited RAM of the ATtyny85 that caused the game board to be overwritten with 
+garbage bytes (aka the stack) when uncovering an nearly empty board.
 So I had to implement the uncovering using an interative approach. Not really difficult, but
 less obvious and elegant.
 
