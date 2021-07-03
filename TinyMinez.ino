@@ -32,6 +32,8 @@
 //#define _SERIAL_SCREENSHOT_TRIGGER_CONDITION_ ( isRightPressed() )
 
 #include <Arduino.h>
+#include <util/delay.h>
+
 #if !defined(__AVR_ATtiny85__)
   #include "SerialHexTools.h"
 #endif
@@ -43,7 +45,7 @@
 #include "TinyMinezGame.h"
 #include "Selection.h"
 
-const uint8_t KEY_DELAY = 50;
+const uint8_t KEY_DELAY = 100;
 const uint8_t FLAG_DELAY = 100;
 
 // the mines per board for the 4 difficulties
@@ -314,6 +316,7 @@ void loop()
 
         // wait until fire is released
         while ( isFirePressed() );
+        _delay_ms( KEY_DELAY );
 
         // acknowledge the button
         blip5();

@@ -1,6 +1,6 @@
 This will become a MineSweeper hommage on TinyJoypad!
 
-Sketch uses 7358 bytes (89%) of program storage space. Maximum is 8192 bytes.
+Sketch uses 7556 bytes (92%) of program storage space. Maximum is 8192 bytes.
 Global variables use 254 bytes (49%) of dynamic memory, leaving 258 bytes for local variables. Maximum is 512 bytes.
 
 Already achieved:
@@ -24,7 +24,7 @@ Already achieved:
 To do:
 
 * remove dead code and data
-* clean up
+* clean up the code
 
 
 Some future ideas:
