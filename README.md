@@ -31,11 +31,13 @@ The game is won, when all non-mine tiles are uncovered and obviously lost, when 
 * add scrolling for even larger fields?
 
 
-## Technical Details
+## Implementation Details
 The only real difficulty in this project was to get the uncovering of the tiles done.
 My first idea (and probably the most straightforward solution) was to use recursion.
 Due to the limited RAM of the ATtyny85 that caused the game board to be overwritten with 
-garbage bytes (aka the stack) when uncovering a board containing very few mines.
+garbage bytes (aka the stack) when uncovering a board containing very few mines:
+![Stack Overflow...](https://github.com/Lorandil/TinyMinez/blob/main/pic/stack_overflow.png)
+
 So I had to implement the uncovering using an iterative approach. Not really difficult, but
 less obvious and elegant.
 
