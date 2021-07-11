@@ -1,7 +1,7 @@
 //   >>>>>  T-I-N-Y  M-I-N-E-Z v1.0 for ATTINY85  GPLv3 <<<<
 //						Tinyjoypad rev2 compatible
 //                   Programmer: Sven B 2021
-//              Contact EMAIL: 
+//              Contact EMAIL: Lorandil@gmx.de
 
 // Tiny Minez v1.0 is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
