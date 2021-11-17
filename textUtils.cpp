@@ -73,7 +73,7 @@ void pgm_printText( uint8_t x, uint8_t *text, uint8_t textLength )
 {
   memcpy_P( textBuffer + x, text, textLength );
 
-#if !defined(__AVR_ATtiny85__)
+#if !(defined(__AVR_ATtiny85__) || defined(ARDUINO_AVR_ATTINYX4))
   for ( auto n = 0; n < sizeof( textBuffer ); n++ )
   {
     auto value = textBuffer[n];

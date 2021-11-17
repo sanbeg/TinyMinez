@@ -3,12 +3,13 @@
 #include <Arduino.h>
 
 // required for _delay_us()
-#include <ssd1306xled.h>
+#include "src/video/ssd1306xled.h"
 
 #if defined(__AVR_ATtiny85__)
   #define LEFT_RIGHT_BUTTON A0
   #define UP_DOWN_BUTTON    A3
   #define FIRE_BUTTON        1
+#elif defined(ARDUINO_AVR_ATTINYX4)
 #else
   #define LEFT_RIGHT_BUTTON A0
   #define UP_DOWN_BUTTON    A3

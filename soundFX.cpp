@@ -1,7 +1,7 @@
 #include "soundFX.h"
 
 // required for _delay_us()
-#include <ssd1306xled.h>
+#include "src/video/ssd1306xled.h"
 
 /*--------------------------------------------------------*/
 void stepSound()

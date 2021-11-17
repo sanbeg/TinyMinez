@@ -10,7 +10,10 @@
 #include <Arduino.h>
 #include "tinyJoypadUtils.h"
 
-#if !defined(__AVR_ATtiny85__)
+
+#if defined(ARDUINO_AVR_ATTINYX4)
+#  include "Control.h"
+#elif !defined(__AVR_ATtiny85__)
   // include serial output functions
   #include "SerialHexTools.h"
 
@@ -31,6 +34,8 @@ void InitTinyJoypad()
   DDRB &= ~( ( 1 << PB5) | ( 1 << PB3 ) | ( 1 << PB1 ) );
   // configure A2 as output
   DDRB |= ( 1 << PB4 );
+#elif defined(ARDUINO_AVR_ATTINYX4)
+  control::setup();
 #else
   // use 'pinMode()' for simplicity's sake... any other micro controller has enough flash :)
   pinMode( LEFT_RIGHT_BUTTON, INPUT );
@@ -44,6 +49,7 @@ void InitTinyJoypad()
 #endif
 }
 
+#ifdef LEFT_RIGHT_BUTTON
 /*-------------------------------------------------------*/
 bool isLeftPressed()
 {
@@ -72,11 +78,40 @@ bool isDownPressed()
   return( ( inputY >= 750 ) && ( inputY < 950 ) );
 }
 
+
 /*-------------------------------------------------------*/
 bool isFirePressed()
 {
   return( digitalRead( FIRE_BUTTON ) == 0 );
 }
+
+#else
+bool isLeftPressed()
+{
+  return control::isPressed(control::BTN_L);
+}
+bool isRightPressed()
+{
+    return control::isPressed(control::BTN_R);
+}
+
+bool isUpPressed()
+{
+    return control::isPressed(control::BTN_U);
+}
+
+bool isDownPressed()
+{
+    return control::isPressed(control::BTN_D);
+}
+
+
+bool isFirePressed()
+{
+    return control::isPressed(control::BTN_A);
+}
+
+#endif
 
 /*-------------------------------------------------------*/
 // wait until all buttons are released
@@ -107,6 +142,8 @@ void _variableDelay_us( uint8_t delayValue )
 // Code optimization by sbr
 void Sound( const uint8_t freq, const uint8_t dur )
 {
+  #if 0
+
   for ( uint8_t t = 0; t < dur; t++ )
   {
     if ( freq!=0 ){ PORTB = PORTB|0b00010000; }
@@ -114,12 +151,13 @@ void Sound( const uint8_t freq, const uint8_t dur )
     PORTB = PORTB&0b11101111;
     _variableDelay_us( 255 - freq );
   }
+  #endif
 }
 
 /*-------------------------------------------------------*/
 void InitDisplay()
 {
-#if defined(__AVR_ATtiny85__) /* codepath for ATtiny85 */
+#if defined(__AVR_ATtiny85__) || defined(ARDUINO_AVR_ATTINYX4) /* codepath for ATtiny85 */
   SSD1306.ssd1306_init();
 #else
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -135,7 +173,7 @@ void InitDisplay()
 // This code will init the display for row <y>
 void TinyFlip_PrepareDisplayRow( uint8_t y )
 {
-#if defined(__AVR_ATtiny85__)  /* codepath for ATtiny85 */
+#if defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4)  /* codepath for ATtiny85 */
     // initialize image transfer to segment 'y'
     SSD1306.ssd1306_send_command(0xb0 + y);
   #ifdef _USE_SH1106_
@@ -160,7 +198,7 @@ void TinyFlip_PrepareDisplayRow( uint8_t y )
 /*-------------------------------------------------------*/
 void TinyFlip_SendPixels( uint8_t pixels )
 {
-#if defined(__AVR_ATtiny85__) /* codepath for ATtiny85 */
+#if defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4) /* codepath for ATtiny85 */
   // send a byte directly to the SSD1306
   SSD1306.ssd1306_send_byte( pixels );
 
@@ -174,7 +212,7 @@ void TinyFlip_SendPixels( uint8_t pixels )
 // This code will finish a row (only on Tiny85)
 void TinyFlip_FinishDisplayRow()
 {
-#if defined(__AVR_ATtiny85__)
+#if defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4)
   // this line appears to be optional, as it was never called during the intro screen...
   // but hey, we still have some bytes left ;)
   SSD1306.ssd1306_send_data_stop();
@@ -184,7 +222,7 @@ void TinyFlip_FinishDisplayRow()
 /*-------------------------------------------------------*/
 void TinyFlip_DisplayBuffer()
 {
-#if !defined(__AVR_ATtiny85__) /* codepath for any Adafruit_SSD1306 supported MCU */
+#if !(defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4)) /* codepath for any Adafruit_SSD1306 supported MCU */
   // display buffer (not necessary)
   display.display();
 #endif
@@ -198,7 +236,7 @@ void TinyFlip_DisplayBuffer()
 // (4) Rotate and mirror the result as needed :)
 void TinyFlip_SerialScreenshot()
 {
-#if !defined(__AVR_ATtiny85__) /* codepath for any Adafruit_SSD1306 supported MCU */
+#if !(defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4)) /* codepath for any Adafruit_SSD1306 supported MCU */
   // print a short header
   Serial.println(F("\r\nTinyMinez screenshot"));
   // output the full buffer as a hexdump to the serial port

@@ -1,4 +1,4 @@
-#if !defined(__AVR_ATtiny85__)
+#if !(defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4))
 
 #include <Arduino.h>
 #include <EEPROM.h>

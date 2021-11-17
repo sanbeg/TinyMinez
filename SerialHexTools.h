@@ -2,7 +2,9 @@
 
 #include <Arduino.h>
 
-#if !defined(__AVR_ATtiny85__)
+#if !(defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4))
+#define HAVE_SERIAL_HEX
+
   static uint8_t hexdumpPositionCount = 0;
   static uint8_t hexdumpValuesPerLine = 16;
 

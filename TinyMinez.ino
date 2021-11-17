@@ -34,7 +34,7 @@
 #include <Arduino.h>
 #include <util/delay.h>
 
-#if !defined(__AVR_ATtiny85__)
+#if !(defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4))
   #include "SerialHexTools.h"
 #endif
 #include "spritebank.h"
@@ -448,7 +448,7 @@ void Tiny_Flip( bool invert )
       // this should never happen
       default:
       {
-      #if !defined(__AVR_ATtiny85__)
+      #if !(defined(__AVR_ATtiny85__) || defined(ARDUINO_AVR_ATTINYX4))
         Serial.println( F("*** Tiny_Flip() : default branch hit - did you forget something? ***") );
         while( 1 );
         break;

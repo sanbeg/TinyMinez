@@ -3,7 +3,7 @@
 #include "tinyJoypadUtils.h"
 #include "soundFX.h"
 
-#if !defined(__AVR_ATtiny85__)
+#if !(defined(__AVR_ATtiny85__)||defined(ARDUINO_AVR_ATTINYX4))
   #include "SerialHexTools.h"
 #endif
 
@@ -346,7 +346,7 @@ void Game::clearLevel()
 // dump the level to the serial port
 void Game::serialPrintLevel()
 {
-#if !defined(__AVR_ATtiny85__)
+#if defined(HAVE_SERIAL_HEX)
   Serial.print( F("markedMines = ") ); Serial.print( getFlaggedTilesCount() );
   Serial.print( F(", hiddenTiles = ") ); Serial.print( getHiddenTilesCount() );
   Serial.print( F(", clicksCount = ") ); Serial.print( getClicksCount() );
@@ -365,7 +365,7 @@ void Game::serialPrintLevel()
 // prints the current game status to serial output
 void Game::serialPrintGameStatus()
 {
-#if !defined(__AVR_ATtiny85__)
+#if defined(HAVE_SERIAL_HEX)
   switch( status )
   {
     case Status::intro:
