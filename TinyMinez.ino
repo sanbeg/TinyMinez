@@ -223,6 +223,7 @@ void loop()
           }
           if ( isFirePressed() )
           {
+            // TODO - remove long press if we have an extra button?
             uint8_t count = 0;
             // let's check how long fire is pressed
             do
@@ -260,6 +261,13 @@ void loop()
             }
             // wait a moment
             playerAction = true;
+          }
+          else if ( isFlagPressed() )
+          {
+             // set or remove a flag symbol
+              game.toggleFlag( cursorX, cursorY );
+              // wait a moment
+              playerAction = true;
           }
           else if ( playerAction )
           {

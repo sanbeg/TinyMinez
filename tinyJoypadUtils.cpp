@@ -112,11 +112,16 @@ bool isDownPressed()
     return control::isPressed(control::BTN_D);
 }
 
-
 bool isFirePressed()
 {
     return control::isPressed(control::BTN_A);
 }
+
+bool isFlagPressed()
+{
+    return control::isPressed(control::BTN_B);
+}
+
 
 #endif
 

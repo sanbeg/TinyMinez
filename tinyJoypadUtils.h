@@ -24,6 +24,8 @@ bool isRightPressed();
 bool isUpPressed();
 bool isDownPressed();
 bool isFirePressed();
+bool isFlagPressed();
+
 void waitUntilButtonsReleased();
 void waitUntilButtonsReleased( const uint8_t delay );
 void _variableDelay_us( uint8_t delayValue );
