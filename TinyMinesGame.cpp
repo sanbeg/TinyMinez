@@ -260,6 +260,11 @@ void Game::toggleFlag( const int8_t x, const int8_t y )
   }
 }
 
+bool Game::hasFlag( const int8_t x, const int8_t y )
+{
+  return getCellValue(x, y) & FLAG;
+}
+
 /*--------------------------------------------------------*/
 // We can safely count the 3x3 neighbourhood, because the center
 // position is not a bomb - otherwise we would already be dead ;)

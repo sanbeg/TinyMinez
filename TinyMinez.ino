@@ -243,6 +243,9 @@ void loop()
             }
             else
             {
+              if (  game.hasFlag(cursorX, cursorY) ) {
+                blip3();
+              } else {
               // uncover this cell and all adjacent cells (if this cell is empty)
               if ( !game.uncoverCells( cursorX, cursorY ) )
               {
@@ -257,6 +260,7 @@ void loop()
               {
                 // something bad did happen...
                 game.setStatus( Status::boom );
+              }
               }
             }
             // wait a moment
