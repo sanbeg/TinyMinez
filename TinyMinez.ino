@@ -270,6 +270,7 @@ void loop()
           {
              // set or remove a flag symbol
               game.toggleFlag( cursorX, cursorY );
+              _delay_ms( FLAG_DELAY );
               // wait a moment
               playerAction = true;
           }
